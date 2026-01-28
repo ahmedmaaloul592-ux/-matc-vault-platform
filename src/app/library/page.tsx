@@ -1,9 +1,11 @@
 "use client";
 
-import { MOCK_ASSETS } from '@/lib/mock-data';
+import { useBundles } from '@/hooks/useBundles';
 import Link from 'next/link';
 
 export default function AssetLibraryPage() {
+    const { bundles, loading } = useBundles();
+
     return (
         <main className="min-h-screen bg-[#020617] relative overflow-hidden px-6 py-12 lg:px-24">
             <nav className="relative z-50 flex justify-between items-center mb-24">
@@ -28,21 +30,23 @@ export default function AssetLibraryPage() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 relative z-10">
-                {MOCK_ASSETS.map((asset) => (
-                    <div key={asset.id} className="glass-card group overflow-hidden border-white/5 hover:border-indigo-500/30 transition-all">
+                {loading ? (
+                    <div className="col-span-full text-center text-white">Loading library...</div>
+                ) : bundles.map((asset) => (
+                    <div key={asset._id} className="glass-card group overflow-hidden border-white/5 hover:border-indigo-500/30 transition-all">
                         <div className="relative h-72">
                             <img src={asset.thumbnail} alt={asset.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent opacity-90" />
                             <div className="absolute bottom-6 left-6 right-6">
                                 <div className="flex items-center gap-3 mb-2">
                                     <span className="px-3 py-1 bg-indigo-600/80 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest">Recorded Package</span>
-                                    {asset.supportIncluded && <span className="px-3 py-1 bg-emerald-600/80 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest">Support Included</span>}
+                                    {asset.stats.hasLiveSupport && <span className="px-3 py-1 bg-emerald-600/80 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest">Support Included</span>}
                                 </div>
                             </div>
                         </div>
 
                         <div className="p-10">
-                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Presented by {asset.expertName}</div>
+                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Presented by {asset.provider.name}</div>
                             <h3 className="text-3xl font-black text-white mb-4 group-hover:text-indigo-400 transition-all leading-tight">{asset.title}</h3>
                             <p className="text-slate-400 text-sm mb-8 line-clamp-2 leading-relaxed font-medium">
                                 {asset.description}
@@ -52,11 +56,11 @@ export default function AssetLibraryPage() {
                                 <div className="flex gap-6">
                                     <div className="flex flex-col">
                                         <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest mb-1">Expert Sessions</span>
-                                        <span className="text-white font-black text-sm uppercase">{asset.videoDuration.split(' ')[0]} Hrs</span>
+                                        <span className="text-white font-black text-sm uppercase">{asset.stats.videoHours} Hrs</span>
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest mb-1">Scientific Support</span>
-                                        <span className="text-white font-black text-sm uppercase">{asset.documents.length} Docs</span>
+                                        <span className="text-white font-black text-sm uppercase">{asset.stats.documentCount} Docs</span>
                                     </div>
                                 </div>
                                 <button className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl hover:scale-110 transition-transform">

@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
                 role: user.role
             },
             JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN }
+            { expiresIn: JWT_EXPIRES_IN as any }
         );
 
         // Return user data (without password)

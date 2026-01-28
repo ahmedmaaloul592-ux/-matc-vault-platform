@@ -5,8 +5,9 @@ import TrainingBundle from '@/models/TrainingBundle';
 // GET /api/bundles/[id] - Get single bundle
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
+    const params = await context.params;
     try {
         await connectDB();
 
@@ -44,8 +45,9 @@ export async function GET(
 // PATCH /api/bundles/[id] - Update bundle
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
+    const params = await context.params;
     try {
         await connectDB();
 
@@ -89,8 +91,9 @@ export async function PATCH(
 // DELETE /api/bundles/[id] - Delete bundle (soft delete)
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
+    const params = await context.params;
     try {
         await connectDB();
 
