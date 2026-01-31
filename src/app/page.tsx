@@ -363,7 +363,7 @@ export default function LandingPage() {
               <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping"></div>
               <span className="text-indigo-400 font-black text-[10px] uppercase tracking-[0.3em]">{t.hero.tag}</span>
             </div>
-            <h1 className="text-6xl lg:text-[7rem] font-black leading-[1.1] tracking-[-0.02em] uppercase italic text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+            <h1 className="text-4xl md:text-6xl lg:text-[7rem] font-black leading-[1.1] tracking-[-0.02em] uppercase italic text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
               {t.hero.title}
             </h1>
             <p className="text-2xl text-slate-100 font-bold leading-relaxed max-w-xl italic border-s-4 border-indigo-500 pl-6">
@@ -445,8 +445,8 @@ export default function LandingPage() {
       {/* Showcase - Cinematic Grid */}
       <section className="px-6 lg:px-24 py-40 bg-white/[0.01]">
         <div className="text-center mb-32 relative">
-          <h2 className="text-6xl lg:text-[12rem] font-black text-white/[0.03] absolute left-1/2 -translate-x-1/2 -top-24 select-none uppercase tracking-[0.1em]">Exclusive</h2>
-          <h2 className="text-5xl lg:text-[6rem] font-black text-white tracking-[-0.04em] uppercase italic leading-none relative z-10">{t.showcase.title}</h2>
+          <h2 className="text-4xl md:text-6xl lg:text-[12rem] font-black text-white/[0.03] absolute left-1/2 -translate-x-1/2 -top-12 md:-top-24 select-none uppercase tracking-[0.1em]">Exclusive</h2>
+          <h2 className="text-3xl md:text-5xl lg:text-[6rem] font-black text-white tracking-[-0.04em] uppercase italic leading-none relative z-10">{t.showcase.title}</h2>
           <p className="text-slate-500 text-xl font-bold mt-10 italic max-w-3xl mx-auto opacity-70">{t.showcase.subtitle}</p>
         </div>
 
@@ -646,10 +646,10 @@ function RoleCard({ badge, title, desc, promo, btn, color, featured, onClick, is
   };
 
   return (
-    <div className={`p-16 rounded-[80px] border flex flex-col justify-between min-h-[750px] transition-all duration-700 relative overflow-hidden group hover:shadow-2xl ${colors[color]}`}>
+    <div className={`p-8 md:p-16 rounded-[40px] md:rounded-[80px] border flex flex-col justify-between min-h-[500px] md:min-h-[750px] transition-all duration-700 relative overflow-hidden group hover:shadow-2xl ${colors[color]}`}>
       {featured && <div className="absolute top-0 right-0 p-20 opacity-10 bg-white rounded-full translate-x-1/2 -translate-y-1/2"></div>}
 
-      <div className={`absolute top-10 ${isRtl ? '-left-14' : '-right-14'} px-20 py-2 bg-black/40 text-white text-[9px] font-black uppercase tracking-[0.4em] ${isRtl ? '-rotate-45' : 'rotate-45'} shadow-2xl border border-white/10 z-20`}>{badge}</div>
+      <div className={`absolute top-6 md:top-10 ${isRtl ? '-left-10 md:-left-14' : '-right-10 md:-right-14'} px-12 md:px-20 py-2 bg-black/40 text-white text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] ${isRtl ? '-rotate-45' : 'rotate-45'} shadow-2xl border border-white/10 z-20`}>{badge}</div>
 
       <div className="space-y-12">
         <div className={`w-16 h-2 ${featured ? 'bg-white' : 'bg-indigo-600'} rounded-full`}></div>
@@ -682,7 +682,7 @@ function ResellerCard({ reseller, contactBtn, isRtl, variant }: ResellerCardProp
   };
 
   return (
-    <div className={`p-12 rounded-[60px] border glass-card transition-all duration-700 group relative overflow-hidden shadow-2xl ${colorClasses[variant]}`}>
+    <div className={`p-8 md:p-12 rounded-[40px] md:rounded-[60px] border glass-card transition-all duration-700 group relative overflow-hidden shadow-2xl ${colorClasses[variant]}`}>
       <div className={`absolute top-0 ${isRtl ? 'left-10' : 'right-10'} bg-white/[0.03] px-6 py-2 rounded-b-3xl text-[9px] font-black text-slate-600 uppercase tracking-widest`}>{reseller.countryCode}</div>
       <div className={`space-y-10 ${isRtl ? 'text-right' : 'text-left'}`}>
         <div className="space-y-4">
