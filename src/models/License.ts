@@ -1,18 +1,20 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export type LicenseStatus = 'AVAILABLE' | 'USED' | 'EXPIRED';
+export type LicenseStatus = 'AVAILABLE' | 'USED' | 'PARTIALLY_USED' | 'EXPIRED';
 
 export interface ILicense extends Document {
     key: string;
     status: LicenseStatus;
     ownedBy: mongoose.Types.ObjectId; // Partner or Master who owns this license
-    learner?: {
+    maxUsers: number;
+    usageCount: number;
+    learners: Array<{
         userId: mongoose.Types.ObjectId;
         name: string;
         email: string;
         phone?: string;
-    };
-    activationDate?: Date;
+        activationDate: Date;
+    }>;
     expiryDate?: Date;
     price: number;
     createdAt: Date;
@@ -30,7 +32,7 @@ const LicenseSchema = new Schema<ILicense>(
         },
         status: {
             type: String,
-            enum: ['AVAILABLE', 'USED', 'EXPIRED'],
+            enum: ['AVAILABLE', 'USED', 'PARTIALLY_USED', 'EXPIRED'],
             default: 'AVAILABLE'
         },
         ownedBy: {
@@ -38,16 +40,29 @@ const LicenseSchema = new Schema<ILicense>(
             ref: 'User',
             required: true
         },
-        learner: {
+        maxUsers: {
+            type: Number,
+            default: 10,
+            required: true
+        },
+        usageCount: {
+            type: Number,
+            default: 0,
+            required: true
+        },
+        learners: [{
             userId: {
                 type: Schema.Types.ObjectId,
                 ref: 'User'
             },
             name: String,
             email: String,
-            phone: String
-        },
-        activationDate: Date,
+            phone: String,
+            activationDate: {
+                type: Date,
+                default: Date.now
+            }
+        }],
         expiryDate: Date,
         price: {
             type: Number,
@@ -61,9 +76,8 @@ const LicenseSchema = new Schema<ILicense>(
 );
 
 // Indexes
-LicenseSchema.index({ key: 1 });
 LicenseSchema.index({ ownedBy: 1, status: 1 });
-LicenseSchema.index({ 'learner.userId': 1 });
+LicenseSchema.index({ 'learners.userId': 1 }); // Fixed path name from learner to learners
 
 // Auto-generate license key before saving
 LicenseSchema.pre('save', async function () {

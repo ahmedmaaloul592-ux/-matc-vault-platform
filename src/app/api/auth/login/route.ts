@@ -39,6 +39,31 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Check subscription expiry for all roles (except ADMIN and PROVIDER)
+        if (user.expiryDate && (user.role === 'STUDENT' || user.role === 'RESELLER_T2' || user.role === 'RESELLER_T1')) {
+            const now = new Date();
+            if (now > user.expiryDate) {
+                let message = '';
+                if (user.role === 'STUDENT') {
+                    message = 'Votre abonnement de 3 mois a expiré. Veuillez contacter votre partenaire pour renouveler.';
+                } else if (user.role === 'RESELLER_T2') {
+                    message = 'Votre abonnement annuel Partner a expiré. Veuillez contacter votre Master pour renouveler.';
+                } else if (user.role === 'RESELLER_T1') {
+                    message = 'Votre abonnement annuel Master a expiré. Veuillez contacter l\'administration pour renouveler.';
+                }
+
+                return NextResponse.json(
+                    {
+                        success: false,
+                        message,
+                        expired: true,
+                        role: user.role
+                    },
+                    { status: 403 }
+                );
+            }
+        }
+
         // Verify password
         const isPasswordValid = await user.comparePassword(password);
 

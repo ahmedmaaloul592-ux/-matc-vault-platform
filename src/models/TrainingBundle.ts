@@ -1,5 +1,15 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
+export type ResourceType = 'COURSE_SERIES' | 'VIDEO' | 'DOCUMENT' | 'TOOL' | 'EDUCATIONAL_PLATFORM';
+export type DocumentFormat = 'PDF' | 'EXCEL' | 'WORD' | 'POWERPOINT' | 'SHEET';
+
+export interface IBundleSession {
+    title: string;
+    videoUrl?: string;
+    supportUrl?: string;
+    duration?: string;
+}
+
 export interface ITrainingBundle extends Document {
     title: string;
     provider: {
@@ -7,18 +17,25 @@ export interface ITrainingBundle extends Document {
         logo?: string;
         type: 'Expert' | 'Institute' | 'Agency';
     };
+    resourceType: ResourceType;
+    documentFormat?: DocumentFormat;
     contentType: string;
     description: string;
     thumbnail: string;
     stats: {
         videoHours: number;
         documentCount: number;
+        sessionCount?: number;
         hasLiveSupport: boolean;
     };
     price: number;
     rating?: number;
-    category: 'QHSE' | 'ISO' | 'Safety' | 'Quality' | 'Environment';
+    category: 'QHSE' | 'ISO' | 'Safety' | 'Quality' | 'Environment' | 'Archive';
+    externalLink?: string;
+    sessions?: IBundleSession[];
     isActive: boolean;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    isDemo: boolean;
     createdBy: mongoose.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
@@ -30,7 +47,7 @@ const TrainingBundleSchema = new Schema<ITrainingBundle>(
             type: String,
             required: [true, 'Title is required'],
             trim: true,
-            minlength: [3, 'Title must be at least 3 characters'],
+            minlength: [2, 'Title must be at least 2 characters'],
             maxlength: [200, 'Title cannot exceed 200 characters']
         },
         provider: {
@@ -46,15 +63,27 @@ const TrainingBundleSchema = new Schema<ITrainingBundle>(
                 required: true
             }
         },
+        resourceType: {
+            type: String,
+            enum: ['COURSE_SERIES', 'VIDEO', 'DOCUMENT', 'TOOL', 'EDUCATIONAL_PLATFORM'],
+            default: 'COURSE_SERIES',
+            required: true
+        },
+        documentFormat: {
+            type: String,
+            enum: ['PDF', 'EXCEL', 'WORD', 'POWERPOINT', 'SHEET'],
+            required: false
+        },
         contentType: {
             type: String,
             required: true,
-            trim: true
+            trim: true,
+            default: 'Technical Resource'
         },
         description: {
             type: String,
             required: [true, 'Description is required'],
-            minlength: [10, 'Description must be at least 10 characters'],
+            minlength: [2, 'Description must be at least 2 characters'],
             maxlength: [1000, 'Description cannot exceed 1000 characters']
         },
         thumbnail: {
@@ -65,12 +94,19 @@ const TrainingBundleSchema = new Schema<ITrainingBundle>(
             videoHours: {
                 type: Number,
                 required: true,
-                min: [0, 'Video hours cannot be negative']
+                min: [0, 'Video hours cannot be negative'],
+                default: 0
             },
             documentCount: {
                 type: Number,
                 required: true,
-                min: [0, 'Document count cannot be negative']
+                min: [0, 'Document count cannot be negative'],
+                default: 0
+            },
+            sessionCount: {
+                type: Number,
+                min: [0, 'Session count cannot be negative'],
+                default: 0
             },
             hasLiveSupport: {
                 type: Boolean,
@@ -80,21 +116,44 @@ const TrainingBundleSchema = new Schema<ITrainingBundle>(
         price: {
             type: Number,
             required: [true, 'Price is required'],
-            min: [0, 'Price cannot be negative']
+            min: [0, 'Price cannot be negative'],
+            default: 0
         },
         rating: {
             type: Number,
             min: [1, 'Rating must be at least 1'],
-            max: [5, 'Rating cannot exceed 5']
+            max: [5, 'Rating cannot exceed 5'],
+            default: 5
         },
         category: {
             type: String,
-            enum: ['QHSE', 'ISO', 'Safety', 'Quality', 'Environment'],
-            default: 'QHSE'
+            enum: ['QHSE', 'ISO', 'Safety', 'Quality', 'Environment', 'Archive'],
+            default: 'Archive'
         },
+        externalLink: {
+            type: String,
+            trim: true
+        },
+        sessions: [
+            {
+                title: { type: String, required: true },
+                videoUrl: String,
+                supportUrl: String,
+                duration: String
+            }
+        ],
         isActive: {
             type: Boolean,
-            default: true
+            default: false
+        },
+        approvalStatus: {
+            type: String,
+            enum: ['pending', 'approved', 'rejected'],
+            default: 'approved' // Will be overridden in API for non-admins
+        },
+        isDemo: {
+            type: Boolean,
+            default: false
         },
         createdBy: {
             type: Schema.Types.ObjectId,

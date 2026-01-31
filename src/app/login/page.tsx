@@ -44,7 +44,16 @@ function LoginContent() {
     };
 
     return (
-        <main className="min-h-screen bg-[#080d21] mesh-gradient flex items-center justify-center p-6">
+        <main className="min-h-screen bg-[#080d21] mesh-gradient flex items-center justify-center p-6 relative">
+            <Link
+                href="/"
+                className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 hover:text-indigo-400 transition-colors font-black uppercase tracking-wider text-xs group"
+            >
+                <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour à l'accueil
+            </Link>
             <div className="w-full max-w-6xl">
                 {/* Header */}
                 <div className="text-center mb-16">
@@ -170,14 +179,36 @@ function LoginContent() {
                                 </button>
                             </form>
 
-                            <div className="mt-8 text-center">
-                                <p className="text-slate-400 text-sm font-bold">
-                                    Pas encore de compte?{' '}
-                                    <Link href="/register" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                                        S'inscrire
-                                    </Link>
-                                </p>
-                            </div>
+                            {selectedRole === 'student' && (
+                                <div className="mt-10 p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl animate-in fade-in slide-in-from-bottom duration-700">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-8 h-8 bg-emerald-500 text-white rounded-lg flex items-center justify-center font-black text-xs">DEMO</div>
+                                        <h4 className="text-white font-black uppercase italic text-sm tracking-widest">Accès Démo Gratuit</h4>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center bg-black/20 p-3 rounded-xl">
+                                            <span className="text-slate-500 text-[10px] font-black uppercase">Email</span>
+                                            <span className="text-emerald-400 font-bold text-xs select-all">demo@matcvault.com</span>
+                                        </div>
+                                        <div className="flex justify-between items-center bg-black/20 p-3 rounded-xl">
+                                            <span className="text-slate-500 text-[10px] font-black uppercase">Pass</span>
+                                            <span className="text-emerald-400 font-bold text-xs select-all">demo2026</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setEmail('demo@matcvault.com');
+                                            setPassword('demo2026');
+                                        }}
+                                        className="w-full mt-4 py-3 bg-emerald-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20"
+                                    >
+                                        Connexion Rapide
+                                    </button>
+                                    <p className="mt-4 text-[10px] text-slate-500 font-medium italic text-center">
+                                        * Utilisez ces accès pour explorer l'espace apprentissage.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <div className="mt-12 text-center">

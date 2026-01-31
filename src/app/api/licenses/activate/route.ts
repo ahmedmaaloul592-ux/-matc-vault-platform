@@ -1,107 +1,86 @@
-import { NextRequest, NextResponse } from 'next/server';
+
+import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import License from '@/models/License';
 import User from '@/models/User';
-import { requireAuth } from '@/lib/auth';
 
-// POST /api/licenses/activate - Activate a license for a learner
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
     try {
         await connectDB();
+        const { licenseKey, name, email, phone } = await req.json();
 
-        const authResult = await requireAuth(request, ['RESELLER_T1', 'RESELLER_T2']);
-
-        if (authResult instanceof NextResponse) {
-            return authResult;
-        }
-
-        const { user } = authResult;
-        const body = await request.json();
-        const { licenseKey, learnerEmail, learnerName, learnerPhone } = body;
-
-        // Validation
-        if (!licenseKey || !learnerEmail || !learnerName) {
-            return NextResponse.json(
-                { success: false, message: 'License key, learner email, and name are required' },
-                { status: 400 }
-            );
-        }
-
-        // Find the license
-        const license = await License.findOne({
-            key: licenseKey.toUpperCase(),
-            ownedBy: user.userId,
-            status: 'AVAILABLE'
-        });
+        // 1. Find License
+        const license = await License.findOne({ key: licenseKey });
 
         if (!license) {
-            return NextResponse.json(
-                { success: false, message: 'License not found or already used' },
-                { status: 404 }
-            );
+            return NextResponse.json({ message: 'License key not found' }, { status: 404 });
         }
 
-        // Check if learner already exists
-        let learner = await User.findOne({ email: learnerEmail });
+        // 2. Check Validity
+        if (license.status === 'EXPIRED') {
+            return NextResponse.json({ message: 'License has expired' }, { status: 400 });
+        }
 
-        // If learner doesn't exist, create them
-        if (!learner) {
-            learner = await User.create({
-                name: learnerName,
-                email: learnerEmail,
-                password: Math.random().toString(36).substring(2, 10), // Random password
+        if (license.usageCount >= license.maxUsers) {
+            return NextResponse.json({ message: 'License usage limit reached' }, { status: 400 });
+        }
+
+        // 3. Create Learner Account
+        // Check if user already exists
+        let user = await User.findOne({ email });
+
+        if (user) {
+            // If user exists, meaningful handling depends on logic. 
+            // For now, we assume we link the existing user, or error out.
+            // Let's assume we proceed to just link them for now.
+            // linking logic...
+        } else {
+            // Create new user with License Key as Password
+            // NOTE: Password will be hashed by User model hook
+            // Set expiry date to 90 days (3 months) from now
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + 90);
+
+            user = await User.create({
+                name,
+                email,
+                password: licenseKey, // KEY IS PASSWORD
+                plainPassword: licenseKey, // Store plain key
                 role: 'STUDENT',
-                phone: learnerPhone
+                masterId: license.ownedBy, // Link student to the partner who owns the license
+                isActive: true,
+                phone,
+                expiryDate
             });
         }
 
-        // Activate the license
-        const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + 3); // 3 months validity
+        // 4. Update License
+        license.learners.push({
+            userId: user._id as any,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            activationDate: new Date()
+        });
 
-        license.status = 'USED';
-        license.learner = {
-            userId: learner._id,
-            name: learnerName,
-            email: learnerEmail,
-            phone: learnerPhone
-        };
-        license.activationDate = new Date();
-        license.expiryDate = expiryDate;
+        license.usageCount += 1;
+
+        if (license.usageCount >= license.maxUsers) {
+            license.status = 'USED';
+        } else {
+            license.status = 'PARTIALLY_USED';
+        }
 
         await license.save();
 
-        // Update reseller's enrolled learners count
-        await User.findByIdAndUpdate(
-            user.userId,
-            { $inc: { enrolledLearners: 1 } }
-        );
-
-        return NextResponse.json(
-            {
-                success: true,
-                message: 'License activated successfully',
-                data: {
-                    license,
-                    learner: {
-                        id: learner._id,
-                        name: learner.name,
-                        email: learner.email
-                    }
-                }
-            },
-            { status: 200 }
-        );
+        return NextResponse.json({
+            success: true,
+            message: 'User activated successfully',
+            user: { name: user.name, email: user.email }
+        });
 
     } catch (error: any) {
-        console.error('Activate license error:', error);
-        return NextResponse.json(
-            {
-                success: false,
-                message: 'An error occurred',
-                error: error.message
-            },
-            { status: 500 }
-        );
+        console.error('Activation Error:', error);
+        return NextResponse.json({ message: error.message }, { status: 500 });
     }
 }

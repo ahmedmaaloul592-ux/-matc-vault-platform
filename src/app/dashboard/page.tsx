@@ -106,6 +106,31 @@ export default function DashboardPage() {
 
                 {/* Main Content Area */}
                 <div className="flex-1 p-8">
+                    {user.role === 'STUDENT' && (user as any).managedBy && (
+                        <div className="mb-8 p-6 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-[2rem] flex flex-col md:flex-row items-center gap-6 animate-in slide-in-from-top duration-700">
+                            <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <div className="flex-1 text-center md:text-left">
+                                <div className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1">Votre Partenaire MATC</div>
+                                <h3 className="text-xl font-black text-white italic capitalize">{(user as any).managedBy.name}</h3>
+                                <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-slate-400 text-sm font-medium">
+                                    <span className="flex items-center gap-1">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h2.945M8 3.935A9 9 0 1116.065 19.865" /></svg>
+                                        {(user as any).managedBy.country || 'International'}
+                                    </span>
+                                </div>
+                            </div>
+                            {(user as any).managedBy.paymentMethods && (
+                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl max-w-xs">
+                                    <div className="text-[10px] font-black text-amber-500 uppercase tracking-wider mb-2">Instructions de Paiement :</div>
+                                    <p className="text-slate-300 text-sm italic font-medium">{(user as any).managedBy.paymentMethods}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {renderContent()}
                 </div>
             </main>

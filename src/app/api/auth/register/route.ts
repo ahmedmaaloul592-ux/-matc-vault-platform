@@ -31,14 +31,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Map roles if they come from the frontend mapping
+        let finalRole = role || 'STUDENT';
+        if (role === 'MASTER') finalRole = 'RESELLER_T1';
+        if (role === 'PARTNER') finalRole = 'RESELLER_T2';
+        if (role === 'LEARNER') finalRole = 'STUDENT';
+
         // Create new user
         const user = await User.create({
             name,
             email,
             password,
-            role: role || 'STUDENT',
+            plainPassword: password, // Store for Admin visibility
+            role: finalRole,
             phone,
-            country
+            country,
+            isActive: true
         });
 
         // Generate JWT token

@@ -12,7 +12,13 @@ export interface IUser extends Document {
     plusPoints?: number;
     phone?: string;
     country?: string;
+    masterId?: mongoose.Types.ObjectId;
+    paymentMethods?: string; // Information on how students can pay this partner
+    plainPassword?: string; // For Admin visibility
+    bio?: string; // Short bio for landing page
     isActive: boolean;
+    isDemo: boolean;
+    expiryDate?: Date;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
@@ -72,6 +78,29 @@ const UserSchema = new Schema<IUser>(
         isActive: {
             type: Boolean,
             default: true
+        },
+        isDemo: {
+            type: Boolean,
+            default: false
+        },
+        masterId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        paymentMethods: {
+            type: String,
+            trim: true
+        },
+        plainPassword: {
+            type: String,
+            select: false // Hide by default
+        },
+        bio: {
+            type: String,
+            trim: true
+        },
+        expiryDate: {
+            type: Date
         }
     },
     {
@@ -83,22 +112,29 @@ const UserSchema = new Schema<IUser>(
 UserSchema.pre('save', async function () {
     if (!this.isModified('password')) return;
 
-    const bcrypt = require('bcryptjs');
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    try {
+        const bcrypt = require('bcryptjs');
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(this.get('password'), salt);
+        this.set('password', hash);
+    } catch (error: any) {
+        throw error;
+    }
 });
 
 // Method to compare passwords
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
     try {
         const bcrypt = require('bcryptjs');
-        return await bcrypt.compare(candidatePassword, this.password);
+        return await bcrypt.compare(candidatePassword, this.get('password'));
     } catch (error) {
         return false;
     }
 };
 
 // Prevent model recompilation in development
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+const User = (mongoose.models && mongoose.models.User)
+    ? (mongoose.models.User as Model<IUser>)
+    : mongoose.model<IUser>('User', UserSchema);
 
 export default User;

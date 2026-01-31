@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MOCK_BUNDLES, MOCK_RESELLERS, Reseller } from '@/lib/mock-data';
 
@@ -12,35 +12,35 @@ const translations = {
     hero: {
       tag: 'Archive on Demand',
       title: 'Scientific Assets Vault HQ',
-      desc: "MATC Vault est un Vault Numérique de référence spécialisé dans la préservation d'actifs scientifiques QHSE. Nous offrons un accès exclusif à des archives certifiées de workshops et de documentations techniques de haut niveau",
+      desc: "MATC Vault est l'Écosystème Numérique de référence dédié à la préservation et la haute valorisation d'actifs scientifiques QHSE. Nous combinons un accès exclusif à des archives certifiées et un modèle collaboratif d'élite où chaque ressource technique est validée par nos experts pour garantir l'excellence scientifique.",
       b1: { title: 'Archives Enregistrées', desc: 'Accès instantané aux sessions HD archivées de workshops réels' },
       b2: { title: 'Vault Documentaire', desc: 'SOPs, rapports d\'audit et modèles techniques prêts à l\'usage' },
       b3: { title: 'Modèle Commercial', desc: 'Transformez vos accès numériques en opportunités d\'affaires rentables' }
     },
     royalty: {
       title: 'Enrichissez le Vault. Créez de la Valeur',
-      desc: 'En tant que partenaire, chaque contribution technique ajoutée génère des crédits de renouvellement cumulables pour vos prochaines années',
-      item1: 'Par Série Inédite Archivée',
-      item2: 'Par Document/Vidéo Technique',
+      desc: 'En tant que partenaire, chaque contribution technique ajoutée est soumise à une validation experte par l\'administration avant d\'être publiée, générant des crédits de renouvellement cumulables pour vos prochaines années',
+      item1: 'Série Inédite Archivée (Validation Admin)',
+      item2: 'Document/Vidéo Technique (Filtre Qualité)',
       item3: 'Cumulable sur Exercices Futurs'
     },
     roles: {
       title: 'Accès au Stock Numérique',
       subtitle: 'Niveaux de Distribution & Intégration Écosystème',
       l: { title: 'LEARNER', desc: 'Accès illimité aux archives QHSE de pointe pour seulement 5€ / trimestre', badge: 'Meilleure Offre', btn: 'Activer mon Accès (5€)', promo: 'Tarif imbattable à l\'échelle internationale' },
-      p: { title: 'PARTNER', desc: 'Exploitez le stock numérique et gérez vos propres licences pour 100€ / an', badge: 'Profil Business', btn: 'Contacter un Master' },
-      m: { title: 'MASTER', desc: 'Maximisez vos profits : Distribuez directement aux LEARNERS et pilotez votre réseau de PARTNERS certifiés pour 400€ / an', badge: 'Network Leader', btn: 'Passerelle via ARTIM' }
+      p: { title: 'PARTNER', desc: 'Exploitez le stock numérique, gérez vos licences et contribuez au contenu (après approbation admin) pour 100€ / an', badge: 'Profil Business', btn: 'Contacter un Master' },
+      m: { title: 'MASTER', desc: 'Maximisez vos profits : Distribuez directement, piloter votre réseau et publiez vos propres archives certifiées pour 400€ / an', badge: 'Network Leader', btn: 'Contacter via WhatsApp' }
     },
     showcase: {
       title: 'Patrimoine Scientifique QHSE',
-      subtitle: 'Bibliothèque technique d\'excellence destinée aux experts et ingénieurs en Management QSE',
+      subtitle: 'Bibliothèque technique d\'excellence destinée aux experts et ingénieurs en Management QSE. Chaque archive est validée par le comité scientifique MATC.',
       label: 'Asset Vault',
       size: 'Volume Archives',
       method: 'Flux On-Demand'
     },
     artim: {
       title: 'PAIEMENT VIA ARTIM APP',
-      desc: "Toutes les transactions financières et la gestion des licences s'effectuent exclusivement via l'application mobile ARTIM pour une sécurité maximale",
+      desc: "Toutes les transactions financières, la gestion des licences et le suivi des royalties s'effectuent exclusivement via l'application mobile ARTIM",
       wallet: 'Identifiant Portefeuille ARTIM',
       btn: 'Validation WhatsApp'
     },
@@ -55,12 +55,12 @@ const translations = {
       desc: "MATC Vault intégrera l'Intelligence Artificielle (AI) pour proposer des outils d'audit prédictifs et une assistance automatisée à la conformité"
     },
     promo: {
-      text: "🔥 OFFRE DE LANCEMENT : Les 10 premiers inscrits bénéficient de tarifs exceptionnels !",
-      prices: "PARTNER: 35€ / MASTER: 150€",
+      text: "🔥 OFFRE BETA LIMITÉE : Testez la plateforme pendant 30 jours (Contenu Limité) - Réservé aux 10 premiers !",
+      prices: "PARTNER: 35€ / MASTER: 150€ (au lieu de 100€/400€)",
       close: "Fermer"
     },
     demo: {
-      text: "🚧 SITE EN BETA : Lancement officiel le 10 Février 2026.",
+      text: "🚧 SITE EN BETA : Création de compte ouverte pour tester le système.",
       sub: "C'est le dernier jour pour profiter de l'offre '10 Premiers' !",
       close: "J'ai compris"
     },
@@ -68,7 +68,7 @@ const translations = {
       title: "Protocole de Distribution Officiel",
       feb: {
         title: "Février 2026 : Phase Alpha",
-        desc: "Le règlement des accès PARTNER (35€) et MASTER (150€) se fait exclusivement via l'application ARTIM."
+        desc: "Le règlement des accès PARTNER (35€) et MASTER (150€) se fait directement via WhatsApp."
       },
       postFeb: {
         title: "Dès Mars 2026 : Phase Beta",
@@ -82,35 +82,35 @@ const translations = {
     hero: {
       tag: 'أرشيف تخصصي عند الطلب',
       title: 'مقر خزنة الأصول العلمية للمحترفين',
-      desc: "تعتبر خزنة MATC الخزنة الرقمية المرجعية المتخصصة في أرشفة وحفظ الأصول العلمية لمجال الجودة والسلامة والبيئة. نوفر وصولاً فورياً للمحتوى التقني والورش المسجلة بأعلى المعايير المهنية",
+      desc: "تعتبر خزنة MATC المنظومة الرقمية المرجعية المخصصة لحفظ وتثمين الأصول العلمية في مجال الجودة والسلامة والبيئة. نجمع بين الوصول الحصري للأرشيفات المعتمدة ونموذج تعاوني فريد حيث تخضع كل مساهمة تقنية لتدقيق خبرائنا لضمان التميز العلمي.",
       b1: { title: 'أرشيفات مسجلة', desc: 'مشاهدة فورية لجلسات وورش عمل حقيقية بجودة عالية' },
       b2: { title: 'خزنة الوثائق التقنية', desc: 'آلاف النماذج وسجلات التدقيق الجاهزة للتنفيذ الميداني' },
       b3: { title: 'نموذج تجاري مرن', desc: 'حول حقوق الوصول الرقمية إلى مشروع أعمال مربح ومستدام' }
     },
     royalty: {
       title: 'أثرِ الخزنة الرقمية.. وضاعف أرباحك',
-      desc: 'كشريك استراتيجي، كل مساهمة علمية ترفعها تولد رصيد خصم تراكمي يُحتسب لك في تجديدات السنوات القادمة',
-      item1: 'لكل سلسلة مؤرشفة جديدة',
-      item2: 'لكل فيديو أو وثيقة تقنية',
+      desc: 'كشريك استراتيجي، كل مساهمة علمية ترفعها تخضع لتدقيق فني وبروتوكول جودة من قبل الإدارة قبل النشر، وتولّد رصيد خصم تراكمي يُحتسب لك في تجديدات السنوات القادمة',
+      item1: 'سلسلة مؤرشفة (تدقيق إداري)',
+      item2: 'وثيقة تقنية (فلترة الجودة)',
       item3: 'تراكمي لجميع السنوات القادمة'
     },
     roles: {
       title: 'الوصول إلى المخزون الرقمي',
       subtitle: 'مستويات التوزيع والاندماج في المنظومة الاقتصادية',
       l: { title: 'متعلم', desc: 'وصول غير محدود للأرشيف العلمي التخصصي مقابل 5 يورو فقط كل 3 أشهر', badge: 'أفضل قيمة', btn: 'تفعيل الوصول (5€)', promo: 'سعر تنافسي لا مثيل له عالمياً' },
-      p: { title: 'شريك', desc: 'استثمر في المخزون الرقمي وقم بإدارة تراخيصك الخاصة مقابل 100 يورو سنوياً', badge: 'بروفايل أعمال', btn: 'تواصل مع الوكيل العام' },
-      m: { title: 'وكيل عام', desc: 'ضاعف أرباحك: قم بالتوزيع المباشر للطلاب (LEARNERS) وإدارة شبكة الشركاء (PARTNERS) المعتمدين بـ 400 يورو سنوياً', badge: 'قائد شبكة', btn: 'التفعيل عبر بوابة ARTIM' }
+      p: { title: 'شريك', desc: 'استثمر في المخزون الرقمي، أدر تراخيصك وساهم في إثراء المحتوى (بعد موافقة الإدارة) بـ 100 يورو سنوياً', badge: 'بروفايل أعمال', btn: 'تواصل مع الوكيل العام' },
+      m: { title: 'وكيل عام', desc: 'ضاعف أرباحك: قم بالتوزيع المباشر، إدراة شبكتك ونشر أرشيفك العلمي المعتمد بـ 400 يورو سنوياً', badge: 'قائد شبكة', btn: 'تواصل عبر واتساب' }
     },
     showcase: {
       title: 'التراث العلمي الرقمي للـ QHSE',
-      subtitle: 'مكتبة تقنية متكاملة مخصصة لخبراء ومهندسي إدارة الجودة والسلامة والبيئة',
+      subtitle: 'مكتبة تقنية متكاملة مخصصة للخبراء. كل أرشيف يتم تدقيقه من قبل اللجنة العلمية لـ MATC قبل العرض',
       label: 'أصل رقمي',
       size: 'حجم الأرشيف',
       method: 'وصول مباشر'
     },
     artim: {
       title: 'الدفع عبر تطبيق ARTIM',
-      desc: 'نعتمد تطبيق ARTIM كوسيلة الدفع الوحيدة والمؤمنة لإدارة الاشتراكات والتحويلات المالية الفورية بشكل آلي',
+      desc: 'نعتمد تطبيق ARTIM كوسيلة الدفع الوحيدة لإدارة الاشتراكات، التحويلات المالية الفورية وتتبع نظام العمولات (Royalties)',
       wallet: 'معرف محفظة ARTIM',
       btn: 'التأكيد عبر واتساب'
     },
@@ -125,12 +125,12 @@ const translations = {
       desc: 'ستشهد المنصة دمج تقنيات الذكاء الاصطناعي لتوفير حلول تنبؤية في السلامة وأدوات تدقيق ذكية مؤتمتة'
     },
     promo: {
-      text: "🔥 عرض الإطلاق: أول 10 مسجلين يستفيدون من أسعار استثنائية!",
-      prices: "شريك: 35€ / وكيل عام: 150€",
+      text: "🔥 عرض تجريبي محدود: جرب المنصة لمدة 30 يوم (محتوى محدود) - لأول 10 مشتركين فقط!",
+      prices: "شريك: 35€ / وكيل عام: 150€ (بدلاً من 100€/400€)",
       close: "إغلاق"
     },
     demo: {
-      text: "🚧 نسخة تجريبية: الانطلاق الرسمي للعمل يوم 10 فيفري 2026.",
+      text: "🚧 نسخة تجريبية: التسجيل مفتوح لتجربة النظام.",
       sub: "هذا هو آخر أجل لحجز مقعدك ضمن عرض العشرة الأوائل!",
       close: "فهمت"
     },
@@ -138,7 +138,7 @@ const translations = {
       title: "بروتوكول التوزيع الرسمي",
       feb: {
         title: "فيفري 2026: المرحلة الأولى",
-        desc: "عمليات الدفع لرتبة شريك (35€) ووكيل عام (150€) تتم حصرياً عبر تطبيق ARTIM."
+        desc: "عمليات الدفع لرتبة شريك (35€) ووكيل عام (150€) تتم مباشرة عبر واتساب."
       },
       postFeb: {
         title: "ابتداءً من مارس 2026: المرحلة الثانية",
@@ -152,35 +152,35 @@ const translations = {
     hero: {
       tag: 'Specialized Archive on Demand',
       title: 'Scientific Assets Vault HQ',
-      desc: "MATC Vault is the benchmark Digital Vault for QHSE specialized assets. We provide instant access to high-level recorded workshops and certified technical documentation",
+      desc: "MATC Vault is the premier Digital Ecosystem dedicated to the preservation and high-value leveraging of QHSE scientific assets. We provide exclusive access to certified archives and an elite collaborative model where every technical resource is validated by our experts to ensure scientific excellence.",
       b1: { title: 'Recorded Archives', desc: 'Instant access to HD recordings of real-world technical sessions' },
       b2: { title: 'Technical Vault', desc: 'SOPs, audit templates and checklists ready for field deployment' },
       b3: { title: 'Business Model', desc: 'Transform your digital access rights into high-growth business ops' }
     },
     royalty: {
       title: 'Enrich the Vault. Scale your Value',
-      desc: 'As a strategic partner, every technical contribution generates cumulative credits for your future annual renewals',
-      item1: 'Per New Archived Series',
-      item2: 'Per Tech Video/Document',
+      desc: 'As a strategic partner, every technical contribution you upload undergoes expert validation by the administration before publishing, generating cumulative renewal credits',
+      item1: 'New Archived Series (Admin Approved)',
+      item2: 'Tech Video/Document (Quality Filter)',
       item3: 'Cumulative for future exercises'
     },
     roles: {
       title: 'Digital Stock Access',
       subtitle: 'Distribution Layers & Ecosystem Integration',
       l: { title: 'LEARNER', desc: 'Unlimited access to core QHSE archives for only 5€ / quarter', badge: 'Best Value', btn: 'Activate Access (5€)', promo: 'Globally unbeatable pricing' },
-      p: { title: 'PARTNER', desc: 'Leverage the digital assets and manage licenses for 100€ / year', badge: 'Business Profile', btn: 'Contact a Master' },
-      m: { title: 'MASTER', desc: 'Maximize profits: Direct distribution to LEARNERS and management of your own certified PARTNER network for 400€ / year', badge: 'Network Leader', btn: 'ARTIM Gateway' }
+      p: { title: 'PARTNER', desc: 'Leverage the digital assets, manage licenses and contribute content (after admin approval) for 100€ / year', badge: 'Business Profile', btn: 'Contact a Master' },
+      m: { title: 'MASTER', desc: 'Maximize profits: Direct distribution, network management and publication of your own certified archives for 400€ / year', badge: 'Network Leader', btn: 'Contact via WhatsApp' }
     },
     showcase: {
       title: 'QHSE Scientific Heritage',
-      subtitle: 'Excellence technical library for QSE management experts and engineers',
+      subtitle: 'Excellence technical library for QSE management. Every archive is validated by the MATC scientific committee before display.',
       label: 'Vault Asset',
       size: 'Archive Volume',
       method: 'On-Demand Stream'
     },
     artim: {
       title: 'PAYMENT VIA ARTIM APP',
-      desc: 'All financial transactions and license renewals are securely processed exclusively through the ARTIM mobile application',
+      desc: 'All financial transactions, license renewals and royalty tracking are securely processed exclusively through the ARTIM mobile application',
       wallet: 'ARTIM Wallet ID',
       btn: 'WhatsApp Validation'
     },
@@ -195,12 +195,12 @@ const translations = {
       desc: 'MATC Vault will integrate AI technology to provide predictive safety tools and automated compliance assistance'
     },
     promo: {
-      text: "🔥 LAUNCH OFFER: The first 10 registrants get exceptional rates!",
-      prices: "PARTNER: 35€ / MASTER: 150€",
+      text: "🔥 LIMITED BETA OFFER: Test the platform for 30 days (Limited Content) - First 10 users only!",
+      prices: "PARTNER: 35€ / MASTER: 150€ (instead of 100€/400€)",
       close: "Close"
     },
     demo: {
-      text: "🚧 BETA MODE: Official operations start Feb 10, 2026.",
+      text: "🚧 BETA SITE: Account creation open for system testing.",
       sub: "This is the final deadline to claim the 'First 10' offer!",
       close: "Understood"
     },
@@ -208,7 +208,7 @@ const translations = {
       title: "Official Distribution Protocol",
       feb: {
         title: "February 2026: Alpha Phase",
-        desc: "Payments for PARTNER (35€) and MASTER (150€) access are processed exclusively via the ARTIM App."
+        desc: "Payments for PARTNER (35€) and MASTER (150€) access are processed directly via WhatsApp."
       },
       postFeb: {
         title: "From March 2026: Beta Phase",
@@ -223,11 +223,67 @@ export default function LandingPage() {
   const [lang, setLang] = useState<Language>('fr');
   const [showPromo, setShowPromo] = useState(true);
   const [showDemo, setShowDemo] = useState(true);
+  const [realSellers, setRealSellers] = useState<Reseller[]>([]);
   const t = translations[lang] as any;
   const isRtl = lang === 'ar';
 
-  const masters = MOCK_RESELLERS.filter(r => r.role === 'MASTER');
-  const partners = MOCK_RESELLERS.filter(r => r.role === 'PARTNER');
+  useEffect(() => {
+    // Set deadline to 30 days from now (or a specific beta end date)
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + 30);
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = deadline.getTime() - now;
+
+      if (distance < 0) {
+        clearInterval(timer);
+        setTimeLeft("EXPIRED");
+      } else {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeLeft(`${days}j ${hours}h ${minutes}m ${seconds}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const [timeLeft, setTimeLeft] = useState("");
+
+  const fetchSellers = async () => {
+    try {
+      const response = await fetch('/api/sellers');
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setRealSellers(data);
+        } else {
+          setRealSellers(MOCK_RESELLERS);
+        }
+      } else {
+        setRealSellers(MOCK_RESELLERS);
+      }
+    } catch (error) {
+      console.error('Failed to fetch sellers:', error);
+      setRealSellers(MOCK_RESELLERS);
+    }
+  };
+
+  useEffect(() => {
+    fetchSellers();
+  }, []);
+
+  const masters = realSellers.length > 0
+    ? realSellers.filter(r => r.role === 'MASTER')
+    : MOCK_RESELLERS.filter(r => r.role === 'MASTER');
+
+  const partners = realSellers.length > 0
+    ? realSellers.filter(r => r.role === 'PARTNER')
+    : MOCK_RESELLERS.filter(r => r.role === 'PARTNER');
+
   const head = MOCK_RESELLERS.find(r => r.role === 'HEAD');
 
   const scrollToSection = (id: string) => {
@@ -241,7 +297,7 @@ export default function LandingPage() {
     <main className={`min-h-screen bg-[#080d21] mesh-gradient text-white overflow-x-hidden relative font-['Outfit',sans-serif] ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Promo Banner */}
       {showPromo && (
-        <div className="fixed top-0 left-0 w-full z-[100] animate-in slide-in-from-top duration-500">
+        <div className="relative w-full z-[100] animate-in slide-in-from-top duration-500">
           <div className="bg-gradient-to-r from-indigo-600 via-rose-600 to-indigo-600 p-1">
             <div className="bg-[#080d21] px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between backdrop-blur-3xl">
               <div className="flex-1 flex items-center justify-center gap-4 flex-wrap">
@@ -252,6 +308,10 @@ export default function LandingPage() {
                   <span className="hidden md:inline">{t.promo.text}</span>
                   <span className="ml-2 text-indigo-400 border-l border-white/20 pl-4">{t.promo.prices}</span>
                 </p>
+                <div className="flex items-center gap-2 bg-black/30 px-3 py-1 rounded-lg border border-white/10">
+                  <svg className="w-4 h-4 text-emerald-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <span className="font-mono text-emerald-400 font-bold text-xs">{timeLeft}</span>
+                </div>
               </div>
               <button
                 onClick={() => setShowPromo(false)}
@@ -407,7 +467,9 @@ export default function LandingPage() {
                     <span className="text-[10px] font-black text-slate-500 uppercase block mb-1 tracking-widest">{t.showcase.size}</span>
                     <span className="text-2xl font-black text-white">{b.stats.videoHours}h Archive</span>
                   </div>
-                  <span className="text-indigo-400 font-bold italic group-hover:translate-x-3 transition-transform">{t.showcase.method} →</span>
+                  <Link href="/login" className="text-indigo-400 font-bold italic group-hover:translate-x-3 transition-transform hover:text-white cursor-pointer select-none">
+                    {t.showcase.method} →
+                  </Link>
                 </div>
               </div>
             </div>
@@ -450,34 +512,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ARTIM Unified Gateway */}
-      <section id="artim" className="px-6 lg:px-24 py-40 border-y border-white/5 relative bg-[#05081a]">
-        <div className="max-w-5xl mx-auto grid lg:grid-cols-1 gap-20 items-center text-center">
-          <div className="space-y-10">
-            <h2 className="text-5xl lg:text-[7rem] font-black text-white tracking-[-0.04em] uppercase italic italic">{t.artim.title}</h2>
-            <p className="text-2xl text-slate-200 font-bold italic leading-relaxed max-w-3xl mx-auto border-x-4 border-indigo-500/20 px-10">
-              {t.artim.desc}
-            </p>
-            <div className="p-2 bg-white/5 rounded-[40px] border border-white/5 max-w-3xl mx-auto">
-              <div className="p-12 bg-white/[0.02] rounded-[35px] border border-white/5 relative overflow-hidden group">
-                <div className="absolute -top-20 -right-20 w-80 h-80 bg-indigo-600/10 blur-[100px] rounded-full"></div>
-                <div className="relative z-10 space-y-8">
-                  <div className="space-y-2">
-                    <span className="text-slate-500 text-[11px] font-black uppercase tracking-[0.4em]">{t.artim.wallet}</span>
-                    <div className="text-4xl lg:text-7xl font-black text-white tracking-[0.2em] italic font-['Outfit',sans-serif]">MATC-VAULT-OFFICIAL</div>
-                  </div>
-                  <a
-                    href={`https://wa.me/${head?.whatsapp.replace(/\+/g, '')}`}
-                    className="inline-flex px-16 py-8 bg-indigo-600 text-white rounded-3xl font-black text-xl hover:scale-105 transition-all shadow-2xl shadow-indigo-600/30 uppercase italic"
-                  >
-                    {t.artim.btn}
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Official Directory - Agency Cards */}
       <section className="px-6 lg:px-24 py-40">
@@ -541,33 +575,10 @@ export default function LandingPage() {
         <div className="text-slate-600 text-[9px] font-bold uppercase tracking-widest italic opacity-50">Scientific Archives Vault • Digital Hub Tunisia</div>
       </footer>
 
-      {/* Beta/Launch Banner - Bottom Fixed */}
-      {showDemo && (
-        <div className="fixed bottom-0 left-0 w-full z-[100] animate-in slide-in-from-bottom duration-700">
-          <div className="bg-[#0f172a]/90 backdrop-blur-3xl border-t border-amber-500/20 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-amber-500/10 rounded-xl animate-pulse">
-                <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-amber-500 font-black text-sm uppercase tracking-wider italic">{t.demo.text}</h4>
-                <p className="text-slate-300 text-xs font-bold leading-relaxed">{t.demo.sub}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowDemo(false)}
-              className="px-6 py-2 bg-amber-500 text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white transition-colors"
-            >
-              {t.demo.close}
-            </button>
-          </div>
-        </div>
-      )}
     </main>
   );
 }
+
 
 // Components with Refined Design
 interface BenefitProps {
@@ -686,7 +697,7 @@ function ResellerCard({ reseller, contactBtn, isRtl, variant }: ResellerCardProp
             ))}
           </div>
           <a
-            href={`https://wa.me/${reseller.whatsapp.replace(/\+/g, '')}`}
+            href={`https://wa.me/${reseller.whatsapp.replace(/\D/g, '')}`}
             target="_blank"
             className="flex items-center justify-center gap-4 w-full py-6 bg-white text-black rounded-[30px] font-black text-[11px] uppercase tracking-[0.3em] hover:bg-[#25D366] hover:text-white transition-all duration-500 shadow-xl italic"
           >

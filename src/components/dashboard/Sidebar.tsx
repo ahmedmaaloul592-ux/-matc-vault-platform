@@ -11,15 +11,15 @@ interface SidebarProps {
 export default function Sidebar({ activeTab, setActiveTab, role, isRtl = false }: SidebarProps) {
     const menuItems = {
         STUDENT: [
-            { id: 'library', label: isRtl ? 'المكتبة' : 'Library', icon: <LibraryIcon /> },
-            { id: 'my-courses', label: isRtl ? 'دوراتي' : 'My Courses', icon: <GraduationIcon /> },
-            { id: 'certificates', label: isRtl ? 'الشهادات' : 'Certificates', icon: <ShieldIcon /> },
-            { id: 'settings', label: isRtl ? 'الإعدادات' : 'Settings', icon: <SettingsIcon /> }
+            { id: 'library', label: isRtl ? 'الأرشيف العلمي' : 'Archives Scientifiques', icon: <LibraryIcon /> },
+            { id: 'innovation', label: isRtl ? 'الرؤية و التحديثات' : 'Roadmap & Vision', icon: <ActivityIcon /> },
+            { id: 'settings', label: isRtl ? 'الإعدادات' : 'Paramètres Profil', icon: <SettingsIcon /> }
         ],
         RESELLER_T2: [
             { id: 'overview', label: isRtl ? 'نظرة عامة' : 'Overview', icon: <ChartIcon /> },
             { id: 'licenses', label: isRtl ? 'التراخيص' : 'My Licenses', icon: <KeyIcon /> },
             { id: 'network', label: isRtl ? 'الشبكة' : 'Network', icon: <NetworkIcon /> },
+            { id: 'content', label: isRtl ? 'المحتوى العلمي' : 'Scientific Content', icon: <LibraryIcon /> },
             { id: 'finance', label: isRtl ? 'المالية' : 'Finance', icon: <DollarIcon /> },
             { id: 'settings', label: isRtl ? 'الإعدادات' : 'Settings', icon: <SettingsIcon /> }
         ],
@@ -27,6 +27,7 @@ export default function Sidebar({ activeTab, setActiveTab, role, isRtl = false }
             { id: 'master-overview', label: isRtl ? 'لوحة القيادة' : 'Master Dashboard', icon: <ActivityIcon /> },
             { id: 'stock', label: isRtl ? 'المخزون' : 'License Stock', icon: <LayersIcon /> },
             { id: 'partners', label: isRtl ? 'الشركاء' : 'Partners', icon: <UsersIcon /> },
+            { id: 'content', label: isRtl ? 'المحتوى العلمي' : 'Scientific Content', icon: <LibraryIcon /> },
             { id: 'wallet', label: isRtl ? 'المحفظة' : 'Global Wallet', icon: <DollarIcon /> },
             { id: 'settings', label: isRtl ? 'الإعدادات' : 'Settings', icon: <SettingsIcon /> }
         ],

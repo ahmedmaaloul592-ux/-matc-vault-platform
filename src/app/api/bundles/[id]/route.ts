@@ -50,8 +50,19 @@ export async function PATCH(
     const params = await context.params;
     try {
         await connectDB();
+        const { verifyToken } = require('@/lib/auth');
+        const authUser = await verifyToken(request);
+        const isAdmin = authUser?.role === 'ADMIN';
 
         const body = await request.json();
+
+        // Security: Only admins can change approval status or toggle global isActive
+        if ((body.approvalStatus !== undefined || body.isActive !== undefined) && !isAdmin) {
+            return NextResponse.json(
+                { success: false, message: 'Seul un administrateur peut modifier le statut d\'approbation' },
+                { status: 403 }
+            );
+        }
 
         const bundle = await TrainingBundle.findByIdAndUpdate(
             params.id,
@@ -69,7 +80,7 @@ export async function PATCH(
         return NextResponse.json(
             {
                 success: true,
-                message: 'Bundle updated successfully',
+                message: 'Bundle mis à jour avec succès',
                 data: bundle
             },
             { status: 200 }
@@ -77,14 +88,7 @@ export async function PATCH(
 
     } catch (error: any) {
         console.error('Update bundle error:', error);
-        return NextResponse.json(
-            {
-                success: false,
-                message: 'An error occurred',
-                error: error.message
-            },
-            { status: 500 }
-        );
+        return NextResponse.json({ success: false, message: 'An error occurred', error: error.message }, { status: 500 });
     }
 }
 

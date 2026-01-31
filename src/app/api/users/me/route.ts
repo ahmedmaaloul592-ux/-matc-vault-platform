@@ -9,48 +9,66 @@ export async function GET(request: NextRequest) {
         await connectDB();
 
         const authResult = await requireAuth(request);
-
-        if (authResult instanceof NextResponse) {
-            return authResult;
-        }
+        if (authResult instanceof NextResponse) return authResult;
 
         const { user: authUser } = authResult;
 
-        const user = await User.findById(authUser.userId).select('-password');
+        // More flexible ID validation
+        if (!authUser?.userId || typeof authUser.userId !== 'string') {
+            return NextResponse.json({ success: false, message: 'Invalid User ID' }, { status: 400 });
+        }
+
+        // Use a lean query and handle population manually or with a string ref
+        let user: any;
+        try {
+            user = await User.findById(authUser.userId)
+                .select('-password')
+                .populate({
+                    path: 'masterId',
+                    select: 'name country paymentMethods',
+                    options: { strictPopulate: false }
+                });
+        } catch (dbError: any) {
+            console.error('Database query error in /api/users/me:', dbError);
+            return NextResponse.json({ success: false, message: 'User retrieval failed', error: dbError.message }, { status: 404 });
+        }
 
         if (!user) {
-            return NextResponse.json(
-                { success: false, message: 'User not found' },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
         }
+
+        const userObj = user.toObject ? user.toObject() : user;
 
         return NextResponse.json(
             {
                 success: true,
                 user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    walletBalance: user.walletBalance,
-                    enrolledLearners: user.enrolledLearners,
-                    plusPoints: user.plusPoints,
-                    phone: user.phone,
-                    country: user.country,
-                    isActive: user.isActive,
-                    createdAt: user.createdAt
+                    id: userObj._id,
+                    name: userObj.name,
+                    email: userObj.email,
+                    role: userObj.role,
+                    walletBalance: userObj.walletBalance,
+                    enrolledLearners: userObj.enrolledLearners,
+                    plusPoints: userObj.plusPoints,
+                    phone: userObj.phone,
+                    country: userObj.country,
+                    isDemo: userObj.isDemo,
+                    paymentMethods: userObj.paymentMethods,
+                    bio: userObj.bio,
+                    managedBy: userObj.masterId,
+                    isActive: userObj.isActive,
+                    createdAt: userObj.createdAt
                 }
             },
             { status: 200 }
         );
 
     } catch (error: any) {
-        console.error('Get user error:', error);
+        console.error('SERVER CRASH /api/users/me GET:', error);
         return NextResponse.json(
             {
                 success: false,
-                message: 'An error occurred',
+                message: 'Internal Server Error',
                 error: error.message
             },
             { status: 500 }
@@ -72,8 +90,13 @@ export async function PATCH(request: NextRequest) {
         const { user: authUser } = authResult;
         const body = await request.json();
 
+        // Validation of ID
+        if (!authUser.userId || authUser.userId.length !== 24) {
+            return NextResponse.json({ success: false, message: 'Invalid User ID format' }, { status: 400 });
+        }
+
         // Fields that can be updated
-        const allowedUpdates = ['name', 'phone', 'country'];
+        const allowedUpdates = ['name', 'phone', 'country', 'paymentMethods', 'bio'];
         const updates: any = {};
 
         for (const key of allowedUpdates) {
@@ -108,7 +131,10 @@ export async function PATCH(request: NextRequest) {
                     enrolledLearners: user.enrolledLearners,
                     plusPoints: user.plusPoints,
                     phone: user.phone,
-                    country: user.country
+                    country: user.country,
+                    isDemo: user.isDemo,
+                    paymentMethods: user.paymentMethods,
+                    bio: user.bio
                 }
             },
             { status: 200 }

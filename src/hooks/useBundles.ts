@@ -3,6 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
+export interface BundleSession {
+    title: string;
+    videoUrl?: string;
+    supportUrl?: string;
+    duration?: string;
+}
+
 export interface TrainingBundle {
     _id: string;
     title: string;
@@ -11,18 +18,24 @@ export interface TrainingBundle {
         logo?: string;
         type: 'Expert' | 'Institute' | 'Agency';
     };
+    resourceType: 'COURSE_SERIES' | 'VIDEO' | 'DOCUMENT' | 'TOOL' | 'EDUCATIONAL_PLATFORM';
+    documentFormat?: 'PDF' | 'EXCEL' | 'WORD' | 'POWERPOINT' | 'SHEET';
     contentType: string;
     description: string;
     thumbnail: string;
     stats: {
         videoHours: number;
         documentCount: number;
+        sessionCount?: number;
         hasLiveSupport: boolean;
     };
     price: number;
     rating?: number;
     category: string;
+    externalLink?: string;
+    sessions?: BundleSession[];
     isActive: boolean;
+    isDemo: boolean;
     createdAt: string;
 }
 
@@ -43,6 +56,7 @@ export function useBundles(options: UseBundlesOptions = {}) {
         total: 0,
         pages: 0
     });
+    const { token } = useAuth();
 
     useEffect(() => {
         fetchBundles();
@@ -59,7 +73,9 @@ export function useBundles(options: UseBundlesOptions = {}) {
             if (options.page) params.append('page', options.page.toString());
             if (options.limit) params.append('limit', options.limit.toString());
 
-            const response = await fetch(`/api/bundles?${params.toString()}`);
+            const response = await fetch(`/api/bundles?${params.toString()}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
             const data = await response.json();
 
             if (!response.ok) {
@@ -86,6 +102,7 @@ export function useBundle(id: string) {
     const [bundle, setBundle] = useState<TrainingBundle | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { token } = useAuth();
 
     useEffect(() => {
         if (id) {
@@ -98,7 +115,9 @@ export function useBundle(id: string) {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(`/api/bundles/${id}`);
+            const response = await fetch(`/api/bundles/${id}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
             const data = await response.json();
 
             if (!response.ok) {
