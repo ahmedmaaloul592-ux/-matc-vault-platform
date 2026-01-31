@@ -351,7 +351,7 @@ export default function LandingPage() {
               </button>
             ))}
           </div>
-          <Link href="/login" className="hidden md:flex px-8 py-3 bg-white text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 hover:text-white transition-all duration-500 shadow-xl">{t.nav.login}</Link>
+          <Link href="/login" className="flex px-5 py-2 md:px-8 md:py-3 bg-white text-black rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] hover:bg-indigo-600 hover:text-white transition-all duration-500 shadow-xl">{t.nav.login}</Link>
         </div>
       </nav>
 
