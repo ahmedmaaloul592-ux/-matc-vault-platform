@@ -334,24 +334,25 @@ export default function LandingPage() {
       </div>
 
       {/* Navbar - Restyled */}
-      <nav className="relative z-50 flex justify-between items-center px-6 lg:px-24 py-10">
-        <div className="flex items-center gap-4 group cursor-pointer">
-          <div className="w-16 h-12 bg-white text-black rounded-2xl flex items-center justify-center font-black text-xl group-hover:rotate-12 transition-transform duration-500">MATC</div>
-          <div className="text-3xl font-black tracking-[0.1em] uppercase">MATC<span className="text-slate-500">VAULT</span></div>
+      {/* Navbar - Restyled for Mobile */}
+      <nav className="relative z-50 flex flex-wrap justify-between items-center px-4 md:px-6 lg:px-24 py-4 md:py-10 gap-4">
+        <div className="flex items-center gap-2 md:gap-4 group cursor-pointer">
+          <div className="w-10 h-10 md:w-16 md:h-12 bg-white text-black rounded-xl md:rounded-2xl flex items-center justify-center font-black text-sm md:text-xl group-hover:rotate-12 transition-transform duration-500">MATC</div>
+          <div className="text-xl md:text-3xl font-black tracking-[0.1em] uppercase">MATC<span className="text-slate-500 hidden sm:inline">VAULT</span></div>
         </div>
-        <div className="flex gap-6 items-center">
-          <div className="flex items-center bg-white/[0.03] backdrop-blur-xl p-1.5 rounded-2xl border border-white/10 shadow-inner">
+        <div className="flex gap-2 md:gap-6 items-center ml-auto">
+          <div className="flex items-center bg-white/[0.03] backdrop-blur-xl p-1 rounded-xl md:rounded-2xl border border-white/10 shadow-inner">
             {(['fr', 'ar', 'en'] as Language[]).map((l) => (
               <button
                 key={l}
                 onClick={() => setLang(l)}
-                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase transition-all duration-300 ${lang === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:text-white'}`}
+                className={`px-2 py-1 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[9px] md:text-[11px] font-black uppercase transition-all duration-300 ${lang === l ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:text-white'}`}
               >
                 {l}
               </button>
             ))}
           </div>
-          <Link href="/login" className="flex px-5 py-2 md:px-8 md:py-3 bg-white text-black rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] hover:bg-indigo-600 hover:text-white transition-all duration-500 shadow-xl">{t.nav.login}</Link>
+          <Link href="/login" className="flex px-3 py-1.5 md:px-8 md:py-3 bg-white text-black rounded-lg md:rounded-2xl text-[9px] md:text-[11px] font-black uppercase tracking-wider md:tracking-[0.2em] hover:bg-indigo-600 hover:text-white transition-all duration-500 shadow-xl whitespace-nowrap">{t.nav.login}</Link>
         </div>
       </nav>
 
