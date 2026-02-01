@@ -66,14 +66,7 @@ export default function StudentView({ activeTab }: { activeTab: string }) {
     ];
 
     const filteredBundles = bundles.filter(b => {
-        // First layer: isDemo filter
-        if (user?.isDemo) {
-            if (!b.isDemo) return false;
-        } else {
-            if (b.isDemo) return false;
-        }
-
-        // Second layer: Type/Search filter
+        // Type/Search filter
         if (selectedType === 'Starred') return progressMap[b._id]?.isStarred;
         if (selectedType === 'All') return true;
         if (selectedType === 'DOCUMENT' && (b.resourceType === 'DOCUMENT' || b.resourceType === 'TOOL')) return true;

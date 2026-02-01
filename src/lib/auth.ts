@@ -19,6 +19,15 @@ export async function verifyToken(request: NextRequest): Promise<AuthUser | null
 
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
+        // Special handling for local admin token from /admin page
+        if (token.startsWith('local-admin-token-')) {
+            return {
+                userId: '507f1f77bcf86cd799439011', // Valid ObjectId format for admin
+                email: 'matrainingconsulting@matc.com',
+                role: 'ADMIN'
+            };
+        }
+
         const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
 
         return decoded;

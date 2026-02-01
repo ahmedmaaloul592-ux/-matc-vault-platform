@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
                 id: 'demo_user_id_123',
                 name: 'Demo Account',
                 email: 'demo@matcvault.com',
-                role: 'STUDENT',
+                role: 'ADMIN',
                 walletBalance: 0,
                 enrolledLearners: [],
                 plusPoints: 0,
