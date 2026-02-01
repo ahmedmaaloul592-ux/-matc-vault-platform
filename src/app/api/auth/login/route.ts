@@ -21,6 +21,42 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Hardcoded DEMO Account Bypass (For Testing/Showcase)
+        if (email === 'demo@matcvault.com' && password === 'demo2026') {
+            // Create a mock token and user response
+            const demoUser = {
+                id: 'demo_user_id_123',
+                name: 'Demo Account',
+                email: 'demo@matcvault.com',
+                role: 'STUDENT',
+                walletBalance: 0,
+                enrolledLearners: [],
+                plusPoints: 0,
+                phone: '21600000000',
+                country: 'Tunisia'
+            };
+
+            const token = jwt.sign(
+                {
+                    userId: demoUser.id,
+                    email: demoUser.email,
+                    role: demoUser.role
+                },
+                JWT_SECRET,
+                { expiresIn: '1d' }
+            );
+
+            return NextResponse.json(
+                {
+                    success: true,
+                    message: 'Demo login successful',
+                    token,
+                    user: demoUser
+                },
+                { status: 200 }
+            );
+        }
+
         // Find user with password field
         const user = await User.findOne({ email }).select('+password');
 
