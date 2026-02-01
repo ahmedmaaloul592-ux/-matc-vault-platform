@@ -261,14 +261,14 @@ export default function LandingPage() {
         if (data && data.length > 0) {
           setRealSellers(data);
         } else {
-          setRealSellers(MOCK_RESELLERS);
+          setRealSellers([]);
         }
       } else {
-        setRealSellers(MOCK_RESELLERS);
+        setRealSellers([]);
       }
     } catch (error) {
       console.error('Failed to fetch sellers:', error);
-      setRealSellers(MOCK_RESELLERS);
+      setRealSellers([]);
     }
   };
 
@@ -276,13 +276,9 @@ export default function LandingPage() {
     fetchSellers();
   }, []);
 
-  const masters = realSellers.length > 0
-    ? realSellers.filter(r => r.role === 'MASTER')
-    : MOCK_RESELLERS.filter(r => r.role === 'MASTER');
+  const masters = realSellers.filter(r => r.role === 'MASTER');
 
-  const partners = realSellers.length > 0
-    ? realSellers.filter(r => r.role === 'PARTNER')
-    : MOCK_RESELLERS.filter(r => r.role === 'PARTNER');
+  const partners = realSellers.filter(r => r.role === 'PARTNER');
 
   const head = MOCK_RESELLERS.find(r => r.role === 'HEAD');
 
