@@ -489,13 +489,25 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={handleRequest}
-                                        disabled={processing}
-                                        className="w-full py-4 bg-emerald-500 rounded-xl text-white font-black uppercase tracking-wider hover:bg-emerald-600 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20"
-                                    >
-                                        {processing ? 'Envoi...' : 'Envoyer la demande'}
-                                    </button>
+                                    {isMaster && (
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Type de Licence</label>
+                                            <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                                                <button
+                                                    onClick={() => setRequestType('LEARNING')}
+                                                    className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'LEARNING' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                                                >
+                                                    Learning
+                                                </button>
+                                                <button
+                                                    onClick={() => setRequestType('PARTNER')}
+                                                    className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'PARTNER' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                                                >
+                                                    Partner
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -620,23 +632,25 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                     <span className="text-emerald-400 font-black text-xl">GRATUIT</span>
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Type de Licence</label>
-                                    <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
-                                        <button
-                                            onClick={() => setRequestType('LEARNING')}
-                                            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'LEARNING' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
-                                        >
-                                            Learning
-                                        </button>
-                                        <button
-                                            onClick={() => setRequestType('PARTNER')}
-                                            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'PARTNER' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
-                                        >
-                                            Partner
-                                        </button>
+                                {isMaster && (
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Type de Licence</label>
+                                        <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                                            <button
+                                                onClick={() => setRequestType('LEARNING')}
+                                                className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'LEARNING' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                                            >
+                                                Learning
+                                            </button>
+                                            <button
+                                                onClick={() => setRequestType('PARTNER')}
+                                                className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'PARTNER' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                                            >
+                                                Partner
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <div>
                                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Quantité</label>
