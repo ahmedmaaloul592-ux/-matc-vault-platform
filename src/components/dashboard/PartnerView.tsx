@@ -327,7 +327,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {(licenses || []).slice(0, 5).map((license) => {
-                                    const capacity = license.licenseType === 'PARTNER' ? 2 : 5;
+                                    const capacity = license.maxUsers || (license.licenseType === 'PARTNER' ? 3 : 1);
                                     const isFull = license.usageCount >= capacity;
 
                                     return (
@@ -576,7 +576,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                                 {license.licenseType || 'LEARNING'}
                                             </span>
                                         </td>
-                                        <td className="py-4 text-white font-bold">{license.licenseType === 'PARTNER' ? 2 : 5} Utilisateurs</td>
+                                        <td className="py-4 text-white font-bold">{license.maxUsers || (license.licenseType === 'PARTNER' ? 3 : 1)} Utilisateurs</td>
                                         <td className="py-4 text-slate-400">{license.usageCount}</td>
                                         <td className="py-4">
                                             <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${license.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-400' :

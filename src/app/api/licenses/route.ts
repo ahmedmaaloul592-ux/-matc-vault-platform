@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         const licensesToCreate = [];
         const quantity = Number(data.quantity) || 1;
         const type = data.type || 'LEARNING';
-        const capacity = type === 'LEARNING' ? 5 : 2;
+        const capacity = type === 'PARTNER' ? 3 : 1;
 
         for (let i = 0; i < quantity; i++) {
             licensesToCreate.push({

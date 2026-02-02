@@ -50,7 +50,7 @@ const LicenseSchema = new Schema<ILicense>(
         },
         maxUsers: {
             type: Number,
-            default: 5,
+            default: 1,
             required: true
         },
         usageCount: {
