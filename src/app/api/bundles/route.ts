@@ -17,13 +17,18 @@ export async function GET(request: NextRequest) {
 
         const authUser = await verifyToken(request);
         const isAdmin = authUser?.role === 'ADMIN' || authUser?.role === 'admin';
+        const mine = searchParams.get('mine') === 'true';
 
         // Build query
         let query: any = {};
 
-        // Security logic - SUPER PERMISSIVE FOR DEBUGGING
+        // Security logic
         if (isAdmin) {
             if (status) query.approvalStatus = status;
+            if (mine && authUser) query.createdBy = authUser.userId;
+        } else if (mine && authUser) {
+            // Strictly show only current user's content
+            query.createdBy = authUser.userId;
         } else {
             // Show all approved and active content to everyone
             query = {

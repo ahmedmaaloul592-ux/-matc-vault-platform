@@ -16,7 +16,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
             fetchPartners();
         }
         if (activeTab === 'content') {
-            fetchBundles();
+            fetchBundles(true);
         }
     }, [activeTab, user]);
 
@@ -35,10 +35,11 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
         sessions: [] as { title: string; videoUrl: string; supportUrl: string }[]
     });
 
-    const fetchBundles = async () => {
+    const fetchBundles = async (onlyMine: boolean = false) => {
         setIsFetchingBundles(true);
         try {
-            const res = await fetch('/api/bundles', {
+            const url = onlyMine ? '/api/bundles?mine=true' : '/api/bundles';
+            const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -82,7 +83,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                     title: '', description: '', category: 'Archive', resourceType: 'COURSE_SERIES',
                     price: 35, thumbnail: '', externalLink: '', isDemo: false, sessions: []
                 });
-                fetchBundles();
+                fetchBundles(true);
             } else {
                 const errorMsg = data.errors ? `${data.message}: ${data.errors.join(', ')}` : (data.message || 'Erreur lors de la soumission');
                 alert(errorMsg);
