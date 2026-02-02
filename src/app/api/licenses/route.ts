@@ -35,13 +35,16 @@ export async function POST(req: Request) {
         }
 
         const licensesToCreate = [];
-        const quantity = Number(data.quantity);
+        const quantity = Number(data.quantity) || 1;
+        const type = data.type || 'LEARNING';
+        const capacity = type === 'LEARNING' ? 5 : 2;
 
         for (let i = 0; i < quantity; i++) {
             licensesToCreate.push({
                 ownedBy: data.ownedBy,
+                licenseType: type,
                 price: data.price || 50, // Default price or from data
-                maxUsers: 10, // Default 10 users per license
+                maxUsers: capacity,
                 status: 'AVAILABLE'
             });
         }

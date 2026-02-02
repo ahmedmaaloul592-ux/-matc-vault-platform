@@ -27,16 +27,17 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         await connectDB();
-        const { userId, quantity } = await req.json();
+        const { userId, quantity, type } = await req.json();
+        const requestType = type || 'LEARNING';
 
         if (!userId) {
             return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
         }
 
-        // Check for existing pending request
-        const existingRequest = await LicenseRequest.findOne({ userId, status: 'PENDING' });
+        // Check for existing pending request of SAME TYPE
+        const existingRequest = await LicenseRequest.findOne({ userId, status: 'PENDING', type: requestType });
         if (existingRequest) {
-            return NextResponse.json({ message: 'Vous avez déjà une demande en attente.' }, { status: 400 });
+            return NextResponse.json({ message: `Vous avez déjà une demande de type ${requestType} en attente.` }, { status: 400 });
         }
 
         const user = await User.findById(userId);
@@ -48,7 +49,8 @@ export async function POST(req: Request) {
             userId,
             userName: user.name,
             userEmail: user.email,
-            quantity: quantity || 5,
+            quantity: quantity || 1,
+            type: requestType,
             status: 'PENDING'
         });
 

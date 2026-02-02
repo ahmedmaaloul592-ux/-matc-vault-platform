@@ -20,7 +20,9 @@ export async function POST(req: Request) {
 
         // 1. Generate Licenses
         const licensesToCreate = [];
-        const quantity = request.quantity || 5;
+        const quantity = request.quantity || 1;
+        const licenseType = request.type || 'LEARNING';
+        const capacity = licenseType === 'LEARNING' ? 5 : 2;
 
         for (let i = 0; i < quantity; i++) {
             const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -29,8 +31,9 @@ export async function POST(req: Request) {
             licensesToCreate.push({
                 key: `MATC-${year}-WELCOME-${randomPart}-${i + 1}`,
                 ownedBy: request.userId,
+                licenseType: licenseType,
                 status: 'AVAILABLE',
-                maxUsers: 10,
+                maxUsers: capacity,
                 usageCount: 0,
                 price: 0,
                 learners: []

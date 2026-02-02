@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface License {
     _id: string;
     key: string;
+    licenseType: 'LEARNING' | 'PARTNER';
     status: 'AVAILABLE' | 'PARTIALLY_USED' | 'USED' | 'EXPIRED';
     ownedBy: string;
     // New fields for multi-user support
@@ -84,49 +85,7 @@ export function useLicenses() {
             setLoading(true);
             setError(null);
 
-            // Mock Data for Local Users
-            if (token?.startsWith('local-mock-token-')) {
-                // Simulate API delay
-                await new Promise(resolve => setTimeout(resolve, 800));
 
-                const mockLicenses: License[] = Array.from({ length: 5 }).map((_, i) => {
-                    const maxUsers = 10;
-                    const usageCount = i % 2 !== 0 ? 3 : 0; // Some used, some empty
-
-                    return {
-                        _id: `mock-license-${i}`,
-                        key: `MATC-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-                        status: usageCount === 0 ? 'AVAILABLE' : (usageCount >= maxUsers ? 'USED' : 'PARTIALLY_USED'),
-                        ownedBy: 'mock-user-id',
-                        maxUsers: maxUsers,
-                        usageCount: usageCount,
-                        learners: usageCount > 0 ? Array.from({ length: usageCount }).map((__, j) => ({
-                            userId: `learner-${i}-${j}`,
-                            name: `Apprenant Test ${j + 1}`,
-                            email: `learner${j}@test.com`,
-                            activationDate: new Date().toISOString()
-                        })) : [],
-                        // Legacy support
-                        learner: usageCount > 0 ? {
-                            userId: `learner-${i}-0`,
-                            name: 'Apprenant Test 1',
-                            email: 'learner0@test.com'
-                        } : undefined,
-                        price: 250,
-                        createdAt: new Date().toISOString()
-                    };
-                });
-
-                setLicenses(mockLicenses);
-                setStats({
-                    total: 5,
-                    available: 3, // Logic slightly off for simplicity, just mock
-                    used: 2,
-                    expired: 0
-                });
-                setLoading(false);
-                return;
-            }
 
             const userId = user?.id || (user as any)?._id;
             if (!userId) {
@@ -164,7 +123,7 @@ export function useLicenses() {
         }
     };
 
-    const createLicenses = async (quantity: number, price: number = 5) => {
+    const createLicenses = async (quantity: number, type: 'LEARNING' | 'PARTNER' = 'LEARNING', price: number = 5) => {
         try {
             const userId = user?.id || (user as any)?._id;
             const response = await fetch('/api/licenses', {
@@ -176,6 +135,7 @@ export function useLicenses() {
                 body: JSON.stringify({
                     quantity,
                     price,
+                    type,
                     ownedBy: userId
                 })
             });
@@ -195,7 +155,7 @@ export function useLicenses() {
         }
     };
 
-    const requestLicenses = async (quantity: number) => {
+    const requestLicenses = async (quantity: number, type: 'LEARNING' | 'PARTNER' = 'LEARNING') => {
         try {
             const userId = user?.id || (user as any)?._id;
             const response = await fetch('/api/requests', {
@@ -206,7 +166,8 @@ export function useLicenses() {
                 },
                 body: JSON.stringify({
                     userId,
-                    quantity
+                    quantity,
+                    type
                 })
             });
 

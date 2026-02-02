@@ -76,28 +76,6 @@ export async function POST(req: Request) {
             isDemo: data.isDemo || false
         });
 
-        // Generate 5 Welcome Licenses automatically for Resellers (Master & Partner)
-        if (role === 'RESELLER_T1' || role === 'RESELLER_T2') {
-            const welcomeLicenses = [];
-            for (let i = 0; i < 5; i++) {
-                const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-                const year = new Date().getFullYear();
-
-                welcomeLicenses.push({
-                    key: `MATC-${year}-W-${randomPart}-${i}`,
-                    ownedBy: newUser._id,
-                    status: 'AVAILABLE',
-                    maxUsers: 10,
-                    usageCount: 0,
-                    price: 0,
-                    learners: []
-                });
-            }
-
-            const License = require('@/models/License').default;
-            await License.insertMany(welcomeLicenses);
-        }
-
         // We return the created user. 
         // NOTE: The 'password' field in the returned document will be the HASHED one if we don't exclude it, 
         // or undefined if select: false is set in schema.

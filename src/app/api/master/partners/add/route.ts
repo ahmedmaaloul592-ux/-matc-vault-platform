@@ -50,22 +50,6 @@ export async function POST(req: Request) {
         license.status = 'USED';
         await license.save();
 
-        // 5. Generate 5 Welcome Licenses for the new Partner
-        const welcomeLicenses = [];
-        for (let i = 0; i < 5; i++) {
-            const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-            welcomeLicenses.push({
-                key: `MATC-P-${randomPart}-${i}`, // Unique key
-                ownedBy: newPartner._id,
-                status: 'AVAILABLE',
-                maxUsers: 10,
-                usageCount: 0,
-                price: 0,
-                learners: []
-            });
-        }
-        await License.insertMany(welcomeLicenses);
-
         return NextResponse.json({
             success: true,
             message: 'Partenaire ajouté avec succès !',

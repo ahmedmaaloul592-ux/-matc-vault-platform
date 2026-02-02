@@ -8,6 +8,7 @@ export interface ILicenseRequest extends Document {
     userName: string;
     userEmail: string;
     quantity: number;
+    type: 'LEARNING' | 'PARTNER';
     status: RequestStatus;
     createdAt: Date;
     updatedAt: Date;
@@ -24,7 +25,12 @@ const LicenseRequestSchema = new Schema<ILicenseRequest>(
         userEmail: String,
         quantity: {
             type: Number,
-            default: 5
+            default: 1
+        },
+        type: {
+            type: String,
+            enum: ['LEARNING', 'PARTNER'],
+            default: 'LEARNING'
         },
         status: {
             type: String,

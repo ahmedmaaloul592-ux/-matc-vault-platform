@@ -26,6 +26,7 @@ interface Request {
     userName: string;
     userEmail: string;
     quantity: number;
+    type: 'LEARNING' | 'PARTNER';
     status: string;
     createdAt: string;
 }
@@ -938,6 +939,7 @@ export default function AdminPage() {
                                         <thead>
                                             <tr className="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
                                                 <th className="pb-4 pl-4 font-bold">Demandeur</th>
+                                                <th className="pb-4 font-bold">Type</th>
                                                 <th className="pb-4 font-bold">Quantité</th>
                                                 <th className="pb-4 font-bold">Date</th>
                                                 <th className="pb-4 font-bold">Statut</th>
@@ -957,6 +959,11 @@ export default function AdminPage() {
                                                                 <span className="font-bold text-white">{request.userName}</span>
                                                                 <span className="text-xs text-slate-500">{request.userEmail}</span>
                                                             </div>
+                                                        </td>
+                                                        <td className="py-4">
+                                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${request.type === 'PARTNER' ? 'bg-purple-500/10 text-purple-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                                                                {request.type || 'LEARNING'}
+                                                            </span>
                                                         </td>
                                                         <td className="py-4 font-bold text-xl text-white">{request.quantity}</td>
                                                         <td className="py-4 text-sm text-slate-400">

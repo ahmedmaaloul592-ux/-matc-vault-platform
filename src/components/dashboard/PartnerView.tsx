@@ -120,7 +120,10 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
 
     // State for requesting licenses
     const [showRequest, setShowRequest] = useState(false);
-    const [requestQuantity, setRequestQuantity] = useState(5);
+    const [requestQuantity, setRequestQuantity] = useState(1);
+    const [requestType, setRequestType] = useState<'LEARNING' | 'PARTNER'>('LEARNING');
+
+    const [stockFilter, setStockFilter] = useState<'ALL' | 'LEARNING' | 'PARTNER'>('ALL');
 
     // State for creating a partner (Master only)
     const [showAddPartner, setShowAddPartner] = useState(false);
@@ -241,10 +244,10 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
     const handleRequest = async () => {
         setProcessing(true);
         try {
-            await requestLicenses(requestQuantity);
+            await requestLicenses(requestQuantity, requestType);
             await refetchRequests();
             setShowRequest(false);
-            alert(`Demande envoyée pour ${requestQuantity} licences ! L'administrateur va traiter votre demande.`);
+            alert(`Demande envoyée pour ${requestQuantity} licences ${requestType === 'LEARNING' ? 'Learning' : 'Partner'} ! L'administrateur va traiter votre demande.`);
         } catch (error: any) {
             alert(error.message);
         } finally {
@@ -324,7 +327,8 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {(licenses || []).slice(0, 5).map((license) => {
-                                    const isFull = license.usageCount >= (license.maxUsers || 10);
+                                    const capacity = license.licenseType === 'PARTNER' ? 2 : 5;
+                                    const isFull = license.usageCount >= capacity;
 
                                     return (
                                         <tr key={license._id} className="text-slate-300 hover:bg-white/[0.02] transition-colors">
@@ -340,7 +344,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                             </td>
                                             <td className="py-4 text-sm">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-white">{license.usageCount}/{license.maxUsers || 10} Utilisateurs</span>
+                                                    <span className="font-bold text-white">{license.usageCount}/{capacity} Utilisateurs</span>
                                                     <span className="text-xs text-slate-500">
                                                         {license.learners && license.learners.length > 0
                                                             ? license.learners[license.learners.length - 1].name + (license.learners.length > 1 ? ` +${license.learners.length - 1} autres` : '')
@@ -379,8 +383,8 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                 )}
                             </tbody>
                         </table>
-                    </div>
-                </div>
+                    </div >
+                </div >
 
 
                 {/* Activation Modal */}
@@ -497,7 +501,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                         </div>
                     )
                 }
-            </div>
+            </div >
         );
     }
 
@@ -529,12 +533,34 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                     </div>
                 </div>
 
+                <div className="flex items-center gap-3 mb-6">
+                    <button
+                        onClick={() => setStockFilter('ALL')}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${stockFilter === 'ALL' ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        Tout
+                    </button>
+                    <button
+                        onClick={() => setStockFilter('LEARNING')}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${stockFilter === 'LEARNING' ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/20' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        🎓 Learning
+                    </button>
+                    <button
+                        onClick={() => setStockFilter('PARTNER')}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${stockFilter === 'PARTNER' ? 'bg-purple-600/20 text-purple-400 border border-purple-500/20' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        🤝 Partner
+                    </button>
+                </div>
+
                 <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
                                     <th className="pb-4 pl-4 font-bold">Clé</th>
+                                    <th className="pb-4 font-bold">Type</th>
                                     <th className="pb-4 font-bold">Capacité</th>
                                     <th className="pb-4 font-bold">Utilisés</th>
                                     <th className="pb-4 font-bold">Statut</th>
@@ -542,10 +568,15 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {(licenses || []).map((license) => (
+                                {(licenses || []).filter(l => stockFilter === 'ALL' ? true : l.licenseType === stockFilter).map((license) => (
                                     <tr key={license._id} className="text-slate-300 hover:bg-white/[0.02] transition-colors">
                                         <td className="py-4 pl-4 font-mono text-emerald-400 font-bold">{license.key}</td>
-                                        <td className="py-4 text-white font-bold">{license.maxUsers} Utilisateurs</td>
+                                        <td className="py-4">
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${license.licenseType === 'PARTNER' ? 'bg-purple-500/10 text-purple-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                                                {license.licenseType || 'LEARNING'}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 text-white font-bold">{license.licenseType === 'PARTNER' ? 2 : 5} Utilisateurs</td>
                                         <td className="py-4 text-slate-400">{license.usageCount}</td>
                                         <td className="py-4">
                                             <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${license.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -567,8 +598,8 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                 ))}
                             </tbody>
                         </table>
-                        {licenses.length === 0 && (
-                            <div className="text-center py-10 text-slate-500">Aucune licence en stock. Générez-en une nouvelle !</div>
+                        {(licenses || []).filter(l => stockFilter === 'ALL' ? true : l.licenseType === stockFilter).length === 0 && (
+                            <div className="text-center py-10 text-slate-500">Aucune licence de ce type en stock.</div>
                         )}
                     </div>
                 </div>
@@ -587,6 +618,24 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                 <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
                                     <span className="text-slate-300 font-bold">Coût</span>
                                     <span className="text-emerald-400 font-black text-xl">GRATUIT</span>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Type de Licence</label>
+                                    <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
+                                        <button
+                                            onClick={() => setRequestType('LEARNING')}
+                                            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'LEARNING' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                                        >
+                                            Learning
+                                        </button>
+                                        <button
+                                            onClick={() => setRequestType('PARTNER')}
+                                            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${requestType === 'PARTNER' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                                        >
+                                            Partner
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -753,9 +802,9 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                         className="w-full bg-white/[0.03] border border-white/10 p-5 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
                                     >
                                         <option value="" className="bg-[#0f172a]">Choisir une licence disponible...</option>
-                                        {licenses.filter(l => l.status === 'AVAILABLE').map(l => (
+                                        {licenses.filter(l => l.status === 'AVAILABLE' && l.licenseType === 'PARTNER').map(l => (
                                             <option key={l._id} value={l.key} className="bg-[#0f172a]">
-                                                {l.key} (10 Utilisateurs)
+                                                {l.key} (2 Places)
                                             </option>
                                         ))}
                                     </select>
@@ -836,9 +885,9 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                         className="w-full bg-white/[0.03] border border-white/10 p-5 rounded-2xl outline-none focus:border-emerald-500 font-bold text-white transition-all appearance-none"
                                     >
                                         <option value="" className="bg-[#0f172a]">Sélectionner une licence...</option>
-                                        {licenses.filter(l => l.status === 'AVAILABLE' || l.status === 'PARTIALLY_USED').map(l => (
+                                        {licenses.filter(l => (l.status === 'AVAILABLE' || l.status === 'PARTIALLY_USED') && l.licenseType === 'LEARNING').map(l => (
                                             <option key={l._id} value={l.key} className="bg-[#0f172a]">
-                                                {l.key} ({l.maxUsers - (l.usageCount || 0)} places libres)
+                                                {l.key} ({5 - (l.usageCount || 0)} places libres)
                                             </option>
                                         ))}
                                     </select>

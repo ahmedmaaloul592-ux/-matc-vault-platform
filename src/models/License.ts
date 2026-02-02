@@ -1,9 +1,11 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export type LicenseStatus = 'AVAILABLE' | 'USED' | 'PARTIALLY_USED' | 'EXPIRED';
+export type LicenseType = 'LEARNING' | 'PARTNER';
 
 export interface ILicense extends Document {
     key: string;
+    licenseType: LicenseType;
     status: LicenseStatus;
     ownedBy: mongoose.Types.ObjectId; // Partner or Master who owns this license
     maxUsers: number;
@@ -30,6 +32,12 @@ const LicenseSchema = new Schema<ILicense>(
             uppercase: true,
             trim: true
         },
+        licenseType: {
+            type: String,
+            enum: ['LEARNING', 'PARTNER'],
+            default: 'LEARNING',
+            required: true
+        },
         status: {
             type: String,
             enum: ['AVAILABLE', 'USED', 'PARTIALLY_USED', 'EXPIRED'],
@@ -42,7 +50,7 @@ const LicenseSchema = new Schema<ILicense>(
         },
         maxUsers: {
             type: Number,
-            default: 10,
+            default: 5,
             required: true
         },
         usageCount: {
