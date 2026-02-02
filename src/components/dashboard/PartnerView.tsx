@@ -558,12 +558,14 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                     >
                         🎓 Learning
                     </button>
-                    <button
-                        onClick={() => setStockFilter('PARTNER')}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${stockFilter === 'PARTNER' ? 'bg-purple-600/20 text-purple-400 border border-purple-500/20' : 'text-slate-500 hover:text-white'}`}
-                    >
-                        🤝 Partner
-                    </button>
+                    {isMaster && (
+                        <button
+                            onClick={() => setStockFilter('PARTNER')}
+                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${stockFilter === 'PARTNER' ? 'bg-purple-600/20 text-purple-400 border border-purple-500/20' : 'text-slate-500 hover:text-white'}`}
+                        >
+                            🤝 Partner
+                        </button>
+                    )}
                 </div>
 
                 <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6">
@@ -580,34 +582,39 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {(licenses || []).filter(l => stockFilter === 'ALL' ? true : l.licenseType === stockFilter).map((license) => (
-                                    <tr key={license._id} className="text-slate-300 hover:bg-white/[0.02] transition-colors">
-                                        <td className="py-4 pl-4 font-mono text-emerald-400 font-bold">{license.key}</td>
-                                        <td className="py-4">
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${license.licenseType === 'PARTNER' ? 'bg-purple-500/10 text-purple-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
-                                                {license.licenseType || 'LEARNING'}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 text-white font-bold">{license.maxUsers || (license.licenseType === 'PARTNER' ? 3 : 1)} Utilisateurs</td>
-                                        <td className="py-4 text-slate-400">{license.usageCount}</td>
-                                        <td className="py-4">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${license.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                license.status === 'PARTIALLY_USED' ? 'bg-indigo-500/20 text-indigo-400' :
-                                                    'bg-rose-500/20 text-rose-400'
-                                                }`}>
-                                                {license.status}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 text-right pr-4">
-                                            <button
-                                                onClick={() => { navigator.clipboard.writeText(license.key); alert('Clé copiée !'); }}
-                                                className="text-indigo-400 hover:text-indigo-300 text-xs font-bold uppercase transition-colors"
-                                            >
-                                                Copier
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {(licenses || [])
+                                    .filter(l => {
+                                        if (!isMaster && l.licenseType === 'PARTNER') return false; // Force hide Partner licenses for T2
+                                        return stockFilter === 'ALL' ? true : l.licenseType === stockFilter;
+                                    })
+                                    .map((license) => (
+                                        <tr key={license._id} className="text-slate-300 hover:bg-white/[0.02] transition-colors">
+                                            <td className="py-4 pl-4 font-mono text-emerald-400 font-bold">{license.key}</td>
+                                            <td className="py-4">
+                                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${license.licenseType === 'PARTNER' ? 'bg-purple-500/10 text-purple-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                                                    {license.licenseType || 'LEARNING'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 text-white font-bold">{license.maxUsers || (license.licenseType === 'PARTNER' ? 3 : 1)} Utilisateurs</td>
+                                            <td className="py-4 text-slate-400">{license.usageCount}</td>
+                                            <td className="py-4">
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${license.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                    license.status === 'PARTIALLY_USED' ? 'bg-indigo-500/20 text-indigo-400' :
+                                                        'bg-rose-500/20 text-rose-400'
+                                                    }`}>
+                                                    {license.status}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 text-right pr-4">
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText(license.key); alert('Clé copiée !'); }}
+                                                    className="text-indigo-400 hover:text-indigo-300 text-xs font-bold uppercase transition-colors"
+                                                >
+                                                    Copier
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
                             </tbody>
                         </table>
                         {(licenses || []).filter(l => stockFilter === 'ALL' ? true : l.licenseType === stockFilter).length === 0 && (
