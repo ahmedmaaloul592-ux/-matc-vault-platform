@@ -100,12 +100,18 @@ export async function DELETE(
     const params = await context.params;
     try {
         await connectDB();
+        const { verifyToken } = require('@/lib/auth');
+        const authUser = await verifyToken(request);
+        const isAdmin = authUser?.role === 'ADMIN';
 
-        const bundle = await TrainingBundle.findByIdAndUpdate(
-            params.id,
-            { isActive: false },
-            { new: true }
-        );
+        if (!isAdmin) {
+            return NextResponse.json(
+                { success: false, message: 'Unauthorized' },
+                { status: 403 }
+            );
+        }
+
+        const bundle = await TrainingBundle.findByIdAndDelete(params.id);
 
         if (!bundle) {
             return NextResponse.json(

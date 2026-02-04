@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
+import License from '@/models/License';
 import { requireAuth } from '@/lib/auth';
 
 // GET /api/users/me - Get current user profile
@@ -16,6 +17,28 @@ export async function GET(request: NextRequest) {
         // More flexible ID validation
         if (!authUser?.userId || typeof authUser.userId !== 'string') {
             return NextResponse.json({ success: false, message: 'Invalid User ID' }, { status: 400 });
+        }
+
+        // --- DEMO HANDLER ---
+        if (authUser.userId === '65ba00000000000000000001') {
+            return NextResponse.json({
+                success: true,
+                user: {
+                    id: '65ba00000000000000000001',
+                    name: 'Demo Account',
+                    email: 'demo@matcvault.com',
+                    role: 'STUDENT',
+                    walletBalance: 0,
+                    enrolledLearners: 0,
+                    plusPoints: 0,
+                    phone: '21600000000',
+                    country: 'Tunisia',
+                    isDemo: true,
+                    isActive: true,
+                    hasActiveLicense: true,
+                    createdAt: new Date().toISOString()
+                }
+            }, { status: 200 });
         }
 
         // Use a lean query and handle population manually or with a string ref
@@ -37,6 +60,10 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
         }
 
+        // Check for active license
+        const activeLicense = await License.findOne({ 'learners.userId': user._id });
+        const hasActiveLicense = !!activeLicense;
+
         const userObj = user.toObject ? user.toObject() : user;
 
         return NextResponse.json(
@@ -57,6 +84,7 @@ export async function GET(request: NextRequest) {
                     bio: userObj.bio,
                     managedBy: userObj.masterId,
                     isActive: userObj.isActive,
+                    hasActiveLicense: hasActiveLicense,
                     createdAt: userObj.createdAt
                 }
             },

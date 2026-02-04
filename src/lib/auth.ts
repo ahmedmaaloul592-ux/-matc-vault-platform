@@ -28,6 +28,24 @@ export async function verifyToken(request: NextRequest): Promise<AuthUser | null
             };
         }
 
+        // Special handling for demo account
+        if (token.startsWith('demo-mock-token-')) {
+            return {
+                userId: '65ba00000000000000000001', // Fixed ID for demo
+                email: 'demo@matcvault.com',
+                role: 'STUDENT'
+            };
+        }
+
+        // Handling for local testing users (from Admin Panel mockup)
+        if (token.startsWith('local-mock-token-')) {
+            return {
+                userId: '65ba00000000000000000002',
+                email: 'local@test.com',
+                role: 'STUDENT'
+            };
+        }
+
         const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
 
         return decoded;

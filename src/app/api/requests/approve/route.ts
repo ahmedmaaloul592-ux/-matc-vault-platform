@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         const licensesToCreate = [];
         const quantity = request.quantity || 1;
         const licenseType = request.type || 'LEARNING';
-        const capacity = licenseType === 'PARTNER' ? 3 : 1;
+        const capacity = licenseType === 'PARTNER' ? 2 : 1;
 
         for (let i = 0; i < quantity; i++) {
             const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();

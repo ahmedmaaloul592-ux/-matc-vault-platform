@@ -43,6 +43,26 @@ function LoginContent() {
         }
     };
 
+    const handleQuickLogin = async () => {
+        setError('');
+        setLoading(true);
+        const demoEmail = 'demo@matcvault.com';
+        const demoPass = 'demo2026';
+
+        setEmail(demoEmail);
+        setPassword(demoPass);
+
+        try {
+            await login(demoEmail, demoPass);
+            const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+            router.push(callbackUrl);
+        } catch (err: any) {
+            setError(err.message || 'Login failed. Please check your credentials.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <main className="min-h-screen bg-[#080d21] mesh-gradient flex items-center justify-center p-6 relative">
             <Link
@@ -196,13 +216,11 @@ function LoginContent() {
                                         </div>
                                     </div>
                                     <button
-                                        onClick={() => {
-                                            setEmail('demo@matcvault.com');
-                                            setPassword('demo2026');
-                                        }}
-                                        className="w-full mt-4 py-3 bg-emerald-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20"
+                                        onClick={handleQuickLogin}
+                                        disabled={loading}
+                                        className="w-full mt-4 py-3 bg-emerald-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                                     >
-                                        Connexion Rapide
+                                        {loading ? 'Connexion...' : 'Connexion Rapide'}
                                     </button>
                                     <p className="mt-4 text-[10px] text-slate-500 font-medium italic text-center">
                                         * Utilisez ces accès pour explorer l'espace apprentissage.

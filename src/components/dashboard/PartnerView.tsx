@@ -261,7 +261,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
 
         return (
             <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-3xl font-black text-white uppercase italic mb-2">
                             {isMaster ? 'Tableau de Bord Master' : 'Tableau de Bord Partenaire'}
@@ -274,7 +274,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                     </div>
                     <button
                         onClick={() => setShowRequest(true)}
-                        className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                        className="w-full md:w-auto px-6 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                         Demander des Licences
@@ -328,7 +328,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {(licenses || []).slice(0, 5).map((license) => {
-                                    const capacity = license.maxUsers || (license.licenseType === 'PARTNER' ? 3 : 1);
+                                    const capacity = license.maxUsers || (license.licenseType === 'PARTNER' ? 2 : 1);
                                     const isFull = license.usageCount >= capacity;
 
                                     return (
@@ -521,12 +521,12 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
     if (activeTab === 'stock' || activeTab === 'license-stock' || activeTab === 'licenses') {
         return (
             <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-3xl font-black text-white uppercase italic mb-2">Stock de Licences</h2>
                         <p className="text-slate-400 font-medium">Gérez votre inventaire de licences</p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 w-full md:w-auto">
                         <button
                             onClick={() => refetch()}
                             className="p-3 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all border border-white/5"
@@ -538,7 +538,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                         </button>
                         <button
                             onClick={() => setShowRequest(true)}
-                            className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                            className="flex-1 md:flex-none px-6 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                         >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                             Demander des Licences
@@ -596,7 +596,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                                     {license.licenseType || 'LEARNING'}
                                                 </span>
                                             </td>
-                                            <td className="py-4 text-white font-bold">{license.maxUsers || (license.licenseType === 'PARTNER' ? 3 : 1)} Utilisateurs</td>
+                                            <td className="py-4 text-white font-bold">{license.maxUsers || (license.licenseType === 'PARTNER' ? 2 : 1)} Utilisateurs</td>
                                             <td className="py-4 text-slate-400">{license.usageCount}</td>
                                             <td className="py-4">
                                                 <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${license.status === 'AVAILABLE' ? 'bg-emerald-500/20 text-emerald-400' :
@@ -712,7 +712,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
     if (activeTab === 'partners' || activeTab === 'network') {
         return (
             <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-3xl font-black text-white uppercase italic mb-2">
                             {isMaster ? 'Gestion des Partenaires' : 'Gestion de mes Étudiants'}
@@ -721,10 +721,10 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                             {isMaster ? 'Visualisez et suivez les activités de vos partenaires.' : 'Gérez vos étudiants et leurs accès aux formations.'}
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
                         <button
                             onClick={() => setShowAddLearner(true)}
-                            className="px-6 py-3 bg-white/5 text-white rounded-xl font-black uppercase tracking-wider hover:bg-white/10 transition-colors flex items-center gap-2 border border-white/10"
+                            className="px-6 py-3 bg-white/5 text-white rounded-xl font-black uppercase tracking-wider hover:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-white/10"
                         >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                             Ajouter Étudiant
@@ -732,7 +732,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                         {isMaster && (
                             <button
                                 onClick={() => setShowAddPartner(true)}
-                                className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-wider hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-wider hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                                 Nouveau Partenaire
@@ -792,7 +792,7 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Ville / Pays</label>
                                         <input

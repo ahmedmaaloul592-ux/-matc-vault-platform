@@ -12,6 +12,21 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
         }
 
+        // --- DEMO BYPASS ---
+        if (userId === '65ba00000000000000000001') {
+            return NextResponse.json({
+                success: true,
+                message: 'Profil démo mis à jour (simulation) !',
+                user: {
+                    id: userId,
+                    name: name || 'Demo Account',
+                    email: 'demo@matcvault.com',
+                    role: 'STUDENT',
+                    phone: phone || '21600000000'
+                }
+            });
+        }
+
         const user = await User.findById(userId);
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });

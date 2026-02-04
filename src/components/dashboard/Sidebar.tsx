@@ -6,13 +6,16 @@ interface SidebarProps {
     setActiveTab: (tab: string) => void;
     role: UserRole;
     isRtl?: boolean;
+    isOpen?: boolean;
+    onClose?: () => void;
 }
 
-export default function Sidebar({ activeTab, setActiveTab, role, isRtl = false }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, role, isRtl = false, isOpen = false, onClose }: SidebarProps) {
     const menuItems = {
         STUDENT: [
             { id: 'library', label: isRtl ? 'الأرشيف العلمي' : 'Archives Scientifiques', icon: <LibraryIcon /> },
             { id: 'innovation', label: isRtl ? 'الرؤية و التحديثات' : 'Roadmap & Vision', icon: <ActivityIcon /> },
+            { id: 'strategy', label: isRtl ? 'فرص الشراكة' : 'Opportunités Business', icon: <DollarIcon /> },
             { id: 'settings', label: isRtl ? 'الإعدادات' : 'Paramètres Profil', icon: <SettingsIcon /> }
         ],
         RESELLER_T2: [
@@ -41,6 +44,7 @@ export default function Sidebar({ activeTab, setActiveTab, role, isRtl = false }
             { id: 'admin-overview', label: 'Overview', icon: <ActivityIcon /> },
             { id: 'users', label: 'Users', icon: <UsersIcon /> },
             { id: 'content', label: 'Content', icon: <LibraryIcon /> },
+            { id: 'demo-space', label: 'Espace Démo', icon: <ActivityIcon /> },
             { id: 'system', label: 'System', icon: <SettingsIcon /> },
             { id: 'settings', label: 'Profile', icon: <UserIcon /> }
         ]
@@ -49,32 +53,57 @@ export default function Sidebar({ activeTab, setActiveTab, role, isRtl = false }
     const items = menuItems[role] || menuItems.STUDENT;
 
     return (
-        <aside className="fixed left-0 top-0 h-full w-64 bg-[#080d21]/95 backdrop-blur-xl border-r border-white/5 p-6 z-40 hidden lg:block">
-            <div className="mb-10 px-2">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center font-black text-lg">M</div>
-                    <div className="text-xl font-black tracking-widest text-white">MATC</div>
-                </div>
-            </div>
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                    onClick={onClose}
+                />
+            )}
 
-            <div className="space-y-2">
-                {items.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-300 group ${activeTab === item.id
-                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                            : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                            }`}
-                    >
-                        <div className={`${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover:text-white'}`}>
-                            {item.icon}
-                        </div>
-                        <span className="font-bold text-sm">{item.label}</span>
+            {/* Sidebar */}
+            <aside
+                className={`fixed left-0 top-0 h-full w-64 bg-[#080d21]/95 backdrop-blur-xl border-r border-white/5 p-6 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+            >
+                <div className="absolute top-4 right-4 lg:hidden">
+                    <button onClick={onClose} className="text-slate-400 hover:text-white">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
-                ))}
-            </div>
-        </aside>
+                </div>
+
+                <div className="mb-10 px-2 mt-8 lg:mt-0">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center font-black text-lg">M</div>
+                        <div className="text-xl font-black tracking-widest text-white">MATC</div>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    {items.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => {
+                                setActiveTab(item.id);
+                                if (onClose) onClose();
+                            }}
+                            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-300 group ${activeTab === item.id
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                }`}
+                        >
+                            <div className={`${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover:text-white'}`}>
+                                {item.icon}
+                            </div>
+                            <span className="font-bold text-sm">{item.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </aside>
+        </>
     );
 }
 

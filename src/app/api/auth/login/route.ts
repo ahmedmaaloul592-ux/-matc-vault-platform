@@ -28,12 +28,13 @@ export async function POST(request: NextRequest) {
                 id: 'demo_user_id_123',
                 name: 'Demo Account',
                 email: 'demo@matcvault.com',
-                role: 'ADMIN',
+                role: 'STUDENT',
                 walletBalance: 0,
                 enrolledLearners: [],
                 plusPoints: 0,
                 phone: '21600000000',
-                country: 'Tunisia'
+                country: 'Tunisia',
+                isDemo: true
             };
 
             const token = jwt.sign(

@@ -26,11 +26,17 @@ export function useUserProgress() {
             const res = await fetch('/api/user/progress', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const { data } = await res.json();
+            if (!res.ok) throw new Error('Failed to fetch progress');
+
+            const json = await res.json();
+            const data = json.data;
+
             const map: Record<string, UserProgressData> = {};
-            data.forEach((p: any) => {
-                map[p.bundleId] = p;
-            });
+            if (data && Array.isArray(data)) {
+                data.forEach((p: any) => {
+                    map[p.bundleId] = p;
+                });
+            }
             setProgressMap(map);
         } catch (err) {
             console.error('Error fetching progress:', err);

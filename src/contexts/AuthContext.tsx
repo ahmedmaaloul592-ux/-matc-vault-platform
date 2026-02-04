@@ -16,6 +16,7 @@ export interface User {
     phone?: string;
     country?: string;
     isDemo?: boolean;
+    hasActiveLicense?: boolean;
     paymentMethods?: string;
     bio?: string;
 }
@@ -127,6 +128,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     router.push('/dashboard');
                     return;
                 }
+            }
+
+            // Quick bypass for hardcoded demo account if needed
+            if (email === 'demo@matcvault.com' && password === 'demo2026') {
+                const demoUser: User = {
+                    id: 'demo_user_id_123',
+                    name: 'Demo Account',
+                    email: 'demo@matcvault.com',
+                    role: 'STUDENT',
+                    walletBalance: 0,
+                    enrolledLearners: 0,
+                    plusPoints: 0,
+                    isDemo: true
+                };
+                const fakeToken = 'demo-mock-token-' + Date.now();
+                localStorage.setItem('matc_token', fakeToken);
+                localStorage.setItem('matc_user', JSON.stringify(demoUser));
+                setToken(fakeToken);
+                setUser(demoUser);
+                router.push('/dashboard');
+                return;
             }
 
             // If not found locally, try API
