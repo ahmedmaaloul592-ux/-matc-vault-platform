@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
         const status = searchParams.get('status');
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
-
         const authUser = await verifyToken(request);
         const isAdmin = authUser?.role === 'ADMIN' || authUser?.role === 'admin';
         const mine = searchParams.get('mine') === 'true';

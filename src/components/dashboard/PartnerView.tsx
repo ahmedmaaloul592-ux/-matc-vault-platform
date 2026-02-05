@@ -18,6 +18,9 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
         if (activeTab === 'content') {
             fetchBundles(true);
         }
+        if (activeTab === 'finance') {
+            fetchFinance();
+        }
     }, [activeTab, user]);
 
     const [bundles, setBundles] = useState<any[]>([]);
@@ -140,6 +143,27 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
         country: user?.country || '',
         paymentMethods: user?.paymentMethods || ''
     });
+
+    // Finance State
+    const [financeData, setFinanceData] = useState<{ balance: number; totalRevenue: number; transactions: any[] } | null>(null);
+    const [loadingFinance, setLoadingFinance] = useState(false);
+
+    const fetchFinance = async () => {
+        setLoadingFinance(true);
+        try {
+            const res = await fetch('/api/finance', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setFinanceData(data.data);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingFinance(false);
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -934,175 +958,293 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Chargement du réseau...</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
-                                        <th className="pb-4 pl-4 font-bold">Nom / Utilisateur</th>
-                                        <th className="pb-4 font-bold">Contact & Accès</th>
-                                        <th className="pb-4 font-bold">Détails / Stock</th>
-                                        <th className="pb-4 font-bold">Expiration</th>
-                                        <th className="pb-4 font-bold text-right pr-4">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
-                                    {partners.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="py-12 text-center text-slate-500 italic">
-                                                Aucun partenaire lié à votre compte.
-                                            </td>
+                        <>
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                                            <th className="pb-4 pl-4 font-bold">Nom / Utilisateur</th>
+                                            <th className="pb-4 font-bold">Contact & Accès</th>
+                                            <th className="pb-4 font-bold">Détails / Stock</th>
+                                            <th className="pb-4 font-bold">Expiration</th>
+                                            <th className="pb-4 font-bold text-right pr-4">Actions</th>
                                         </tr>
-                                    ) : (
-                                        partners.map((partner) => {
-                                            const isStudent = partner.role === 'STUDENT';
-                                            const expiryDate = partner.expiryDate ? new Date(partner.expiryDate) : null;
-                                            const isExpired = expiryDate && expiryDate < new Date();
-                                            const daysLeft = expiryDate ? Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {partners.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="py-12 text-center text-slate-500 italic">
+                                                    Aucun partenaire lié à votre compte.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            partners.map((partner) => {
+                                                const isStudent = partner.role === 'STUDENT';
+                                                const expiryDate = partner.expiryDate ? new Date(partner.expiryDate) : null;
+                                                const isExpired = expiryDate && expiryDate < new Date();
+                                                const daysLeft = expiryDate ? Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
 
-                                            return (
-                                                <tr key={partner._id} className="text-slate-300 hover:bg-white/[0.02] transition-colors">
-                                                    <td className="py-4 pl-4 font-bold text-white">{partner.name}</td>
-                                                    <td className="py-4">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium">{partner.email}</span>
-                                                            <div className="flex gap-2 text-[10px] font-bold mt-1">
-                                                                <span className="text-indigo-400">{partner.phone || 'Pas de tél'}</span>
-                                                                <span className="text-slate-600">|</span>
-                                                                <span className="text-emerald-400 uppercase tracking-tighter">Pw: {partner.plainPassword || 'N/A'}</span>
+                                                return (
+                                                    <tr key={partner._id} className="text-slate-300 hover:bg-white/[0.02] transition-colors">
+                                                        <td className="py-4 pl-4 font-bold text-white">{partner.name}</td>
+                                                        <td className="py-4">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-medium">{partner.email}</span>
+                                                                <div className="flex gap-2 text-[10px] font-bold mt-1">
+                                                                    <span className="text-indigo-400">{partner.phone || 'Pas de tél'}</span>
+                                                                    <span className="text-slate-600">|</span>
+                                                                    <span className="text-emerald-400 uppercase tracking-tighter">Pw: {partner.plainPassword || 'N/A'}</span>
+                                                                </div>
                                                             </div>
+                                                        </td>
+                                                        <td className="py-4">
+                                                            {isStudent ? (
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-bold text-white">Étudiant</span>
+                                                                    <span className="text-[10px] text-slate-500 uppercase">5€ / trimestre</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-bold text-white">{partner.licenseCount || 0} Licences</span>
+                                                                    <span className="text-[10px] text-slate-500 uppercase">{partner.activeLicenses || 0} Actives</span>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="py-4">
+                                                            {isStudent && expiryDate ? (
+                                                                <div className="flex flex-col">
+                                                                    <span className={`text-xs font-bold ${isExpired ? 'text-rose-400' : daysLeft && daysLeft < 10 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                                        {expiryDate.toLocaleDateString('fr-FR')}
+                                                                    </span>
+                                                                    <span className={`text-[10px] font-bold uppercase ${isExpired ? 'text-rose-500' : daysLeft && daysLeft < 10 ? 'text-amber-500' : 'text-slate-500'}`}>
+                                                                        {isExpired ? 'Expiré' : `${daysLeft}j restants`}
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-slate-600 text-xs">-</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="py-4 text-right pr-4">
+                                                            {isStudent ? (
+                                                                <div className="flex items-center justify-end gap-2">
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            if (!confirm(`Renouveler l'abonnement de ${partner.name} pour 3 mois (5€) ?`)) return;
+                                                                            try {
+                                                                                const res = await fetch('/api/students/renew', {
+                                                                                    method: 'POST',
+                                                                                    headers: {
+                                                                                        'Content-Type': 'application/json',
+                                                                                        'Authorization': `Bearer ${token}`
+                                                                                    },
+                                                                                    body: JSON.stringify({ studentId: partner._id })
+                                                                                });
+                                                                                const data = await res.json();
+                                                                                if (res.ok) {
+                                                                                    alert(data.message);
+                                                                                    fetchPartners();
+                                                                                } else {
+                                                                                    alert(data.message);
+                                                                                }
+                                                                            } catch (err) {
+                                                                                alert('Erreur lors du renouvellement');
+                                                                            }
+                                                                        }}
+                                                                        className="px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border border-emerald-500/30"
+                                                                    >
+                                                                        ↻ Renouveler
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            if (!confirm(`ATTENTION: Supprimer définitivement ${partner.name} ? Cette action est irréversible.`)) return;
+                                                                            try {
+                                                                                const res = await fetch('/api/students/delete', {
+                                                                                    method: 'DELETE',
+                                                                                    headers: {
+                                                                                        'Content-Type': 'application/json',
+                                                                                        'Authorization': `Bearer ${token}`
+                                                                                    },
+                                                                                    body: JSON.stringify({ studentId: partner._id })
+                                                                                });
+                                                                                const data = await res.json();
+                                                                                if (res.ok) {
+                                                                                    alert(data.message);
+                                                                                    fetchPartners();
+                                                                                } else {
+                                                                                    alert(data.message);
+                                                                                }
+                                                                            } catch (err) {
+                                                                                alert('Erreur lors de la suppression');
+                                                                            }
+                                                                        }}
+                                                                        className="px-3 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border border-rose-500/30"
+                                                                    >
+                                                                        ✕ Supprimer
+                                                                    </button>
+                                                                </div>
+                                                            ) : partner.role === 'RESELLER_T2' ? (
+                                                                <div className="flex items-center justify-end gap-2">
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            if (!confirm(`Renouveler l'abonnement Partner de ${partner.name} pour 1 an (100€) ?`)) return;
+                                                                            try {
+                                                                                const res = await fetch('/api/partners/renew', {
+                                                                                    method: 'POST',
+                                                                                    headers: {
+                                                                                        'Content-Type': 'application/json',
+                                                                                        'Authorization': `Bearer ${token}`
+                                                                                    },
+                                                                                    body: JSON.stringify({ partnerId: partner._id })
+                                                                                });
+                                                                                const data = await res.json();
+                                                                                if (res.ok) {
+                                                                                    alert(data.message);
+                                                                                    fetchPartners();
+                                                                                } else {
+                                                                                    alert(data.message);
+                                                                                }
+                                                                            } catch (err) {
+                                                                                alert('Erreur lors du renouvellement');
+                                                                            }
+                                                                        }}
+                                                                        className="px-3 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border border-indigo-500/30"
+                                                                    >
+                                                                        ↻ Renouveler
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${partner.role === 'RESELLER_T2'
+                                                                    ? 'bg-indigo-500/20 text-indigo-400'
+                                                                    : 'bg-emerald-500/20 text-emerald-400'
+                                                                    }`}>
+                                                                    {partner.role === 'RESELLER_T2' ? 'PARTNER' : 'STUDENT'}
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Card View */}
+                            <div className="md:hidden space-y-4">
+                                {partners.length === 0 ? (
+                                    <div className="text-center py-12 text-slate-500 italic">Aucun partenaire.</div>
+                                ) : (
+                                    partners.map((partner) => {
+                                        const isStudent = partner.role === 'STUDENT';
+                                        const expiryDate = partner.expiryDate ? new Date(partner.expiryDate) : null;
+                                        const isExpired = expiryDate && expiryDate < new Date();
+                                        const daysLeft = expiryDate ? Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+                                        return (
+                                            <div key={partner._id} className="bg-white/5 p-5 rounded-2xl border border-white/5 space-y-4">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${isStudent ? 'bg-emerald-500' : 'bg-indigo-500'
+                                                            }`}>
+                                                            {partner.name.charAt(0)}
                                                         </div>
-                                                    </td>
-                                                    <td className="py-4">
-                                                        {isStudent ? (
-                                                            <div className="flex flex-col">
-                                                                <span className="font-bold text-white">Étudiant</span>
-                                                                <span className="text-[10px] text-slate-500 uppercase">5€ / trimestre</span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex flex-col">
-                                                                <span className="font-bold text-white">{partner.licenseCount || 0} Licences</span>
-                                                                <span className="text-[10px] text-slate-500 uppercase">{partner.activeLicenses || 0} Actives</span>
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                    <td className="py-4">
-                                                        {isStudent && expiryDate ? (
-                                                            <div className="flex flex-col">
-                                                                <span className={`text-xs font-bold ${isExpired ? 'text-rose-400' : daysLeft && daysLeft < 10 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                                                    {expiryDate.toLocaleDateString('fr-FR')}
-                                                                </span>
-                                                                <span className={`text-[10px] font-bold uppercase ${isExpired ? 'text-rose-500' : daysLeft && daysLeft < 10 ? 'text-amber-500' : 'text-slate-500'}`}>
-                                                                    {isExpired ? 'Expiré' : `${daysLeft}j restants`}
-                                                                </span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-slate-600 text-xs">-</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="py-4 text-right pr-4">
-                                                        {isStudent ? (
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        if (!confirm(`Renouveler l'abonnement de ${partner.name} pour 3 mois (5€) ?`)) return;
-                                                                        try {
-                                                                            const res = await fetch('/api/students/renew', {
-                                                                                method: 'POST',
-                                                                                headers: {
-                                                                                    'Content-Type': 'application/json',
-                                                                                    'Authorization': `Bearer ${token}`
-                                                                                },
-                                                                                body: JSON.stringify({ studentId: partner._id })
-                                                                            });
-                                                                            const data = await res.json();
-                                                                            if (res.ok) {
-                                                                                alert(data.message);
-                                                                                fetchPartners();
-                                                                            } else {
-                                                                                alert(data.message);
-                                                                            }
-                                                                        } catch (err) {
-                                                                            alert('Erreur lors du renouvellement');
-                                                                        }
-                                                                    }}
-                                                                    className="px-3 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border border-emerald-500/30"
-                                                                >
-                                                                    ↻ Renouveler
-                                                                </button>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        if (!confirm(`ATTENTION: Supprimer définitivement ${partner.name} ? Cette action est irréversible.`)) return;
-                                                                        try {
-                                                                            const res = await fetch('/api/students/delete', {
-                                                                                method: 'DELETE',
-                                                                                headers: {
-                                                                                    'Content-Type': 'application/json',
-                                                                                    'Authorization': `Bearer ${token}`
-                                                                                },
-                                                                                body: JSON.stringify({ studentId: partner._id })
-                                                                            });
-                                                                            const data = await res.json();
-                                                                            if (res.ok) {
-                                                                                alert(data.message);
-                                                                                fetchPartners();
-                                                                            } else {
-                                                                                alert(data.message);
-                                                                            }
-                                                                        } catch (err) {
-                                                                            alert('Erreur lors de la suppression');
-                                                                        }
-                                                                    }}
-                                                                    className="px-3 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border border-rose-500/30"
-                                                                >
-                                                                    ✕ Supprimer
-                                                                </button>
-                                                            </div>
-                                                        ) : partner.role === 'RESELLER_T2' ? (
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        if (!confirm(`Renouveler l'abonnement Partner de ${partner.name} pour 1 an (100€) ?`)) return;
-                                                                        try {
-                                                                            const res = await fetch('/api/partners/renew', {
-                                                                                method: 'POST',
-                                                                                headers: {
-                                                                                    'Content-Type': 'application/json',
-                                                                                    'Authorization': `Bearer ${token}`
-                                                                                },
-                                                                                body: JSON.stringify({ partnerId: partner._id })
-                                                                            });
-                                                                            const data = await res.json();
-                                                                            if (res.ok) {
-                                                                                alert(data.message);
-                                                                                fetchPartners();
-                                                                            } else {
-                                                                                alert(data.message);
-                                                                            }
-                                                                        } catch (err) {
-                                                                            alert('Erreur lors du renouvellement');
-                                                                        }
-                                                                    }}
-                                                                    className="px-3 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border border-indigo-500/30"
-                                                                >
-                                                                    ↻ Renouveler
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${partner.role === 'RESELLER_T2'
-                                                                ? 'bg-indigo-500/20 text-indigo-400'
-                                                                : 'bg-emerald-500/20 text-emerald-400'
-                                                                }`}>
-                                                                {partner.role === 'RESELLER_T2' ? 'PARTNER' : 'STUDENT'}
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                                        <div>
+                                                            <div className="font-bold text-white leading-tight">{partner.name}</div>
+                                                            <div className="text-xs text-slate-400">{partner.email}</div>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${partner.role === 'RESELLER_T2' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-emerald-500/20 text-emerald-400'
+                                                        }`}>
+                                                        {partner.role === 'RESELLER_T2' ? 'PARTNER' : 'STUDENT'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                                    <div className="p-3 bg-black/20 rounded-xl space-y-1">
+                                                        <div className="text-[10px] text-slate-500 font-bold uppercase">Contact</div>
+                                                        <div className="text-indigo-300 truncate">{partner.phone || '-'}</div>
+                                                    </div>
+                                                    <div className="p-3 bg-black/20 rounded-xl space-y-1">
+                                                        <div className="text-[10px] text-slate-500 font-bold uppercase">Pass</div>
+                                                        <div className="font-mono text-emerald-400 truncate">{partner.plainPassword || '***'}</div>
+                                                    </div>
+                                                </div>
+
+                                                {isStudent && expiryDate && (
+                                                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                                                        <div className="text-xs font-bold text-slate-400">Expiration</div>
+                                                        <div className={`text-xs font-bold ${isExpired ? 'text-rose-400' : daysLeft && daysLeft < 10 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                            {expiryDate.toLocaleDateString()}
+                                                            <span className="opacity-50 ml-1">({isExpired ? 'Expiré' : `${daysLeft}j`})</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                                                    {isStudent ? (
+                                                        <>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`Renouveler l'abonnement de ${partner.name} pour 3 mois (5€) ?`)) return;
+                                                                    try {
+                                                                        const res = await fetch('/api/students/renew', {
+                                                                            method: 'POST',
+                                                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                                                            body: JSON.stringify({ studentId: partner._id })
+                                                                        });
+                                                                        const data = await res.json();
+                                                                        if (res.ok) { alert(data.message); fetchPartners(); } else { alert(data.message); }
+                                                                    } catch (err) { alert('Erreur lors du renouvellement'); }
+                                                                }}
+                                                                className="flex-1 py-3 bg-emerald-500/20 text-emerald-300 rounded-xl text-[10px] font-black uppercase text-center"
+                                                            >
+                                                                Renouveler
+                                                            </button>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`ATTENTION: Supprimer définitivement ${partner.name} ?`)) return;
+                                                                    try {
+                                                                        const res = await fetch('/api/students/delete', {
+                                                                            method: 'DELETE',
+                                                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                                                            body: JSON.stringify({ studentId: partner._id })
+                                                                        });
+                                                                        const data = await res.json();
+                                                                        if (res.ok) { alert(data.message); fetchPartners(); } else { alert(data.message); }
+                                                                    } catch (err) { alert('Erreur suppression'); }
+                                                                }}
+                                                                className="px-4 py-3 bg-rose-500/20 text-rose-300 rounded-xl font-bold"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </>
+                                                    ) : partner.role === 'RESELLER_T2' ? (
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!confirm(`Renouveler l'abonnement Partner de ${partner.name} pour 1 an (100€) ?`)) return;
+                                                                try {
+                                                                    const res = await fetch('/api/partners/renew', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                                                        body: JSON.stringify({ partnerId: partner._id })
+                                                                    });
+                                                                    const data = await res.json();
+                                                                    if (res.ok) { alert(data.message); fetchPartners(); } else { alert(data.message); }
+                                                                } catch (err) { alert('Erreur renouvellement'); }
+                                                            }}
+                                                            className="flex-1 py-3 bg-indigo-500/20 text-indigo-300 rounded-xl text-[10px] font-black uppercase"
+                                                        >
+                                                            Renouveler (100€)
+                                                        </button>
+                                                    ) : null}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
@@ -1525,6 +1667,75 @@ export default function PartnerView({ activeTab }: { activeTab: string }) {
                             </form>
                         </div>
                     </div>
+                )}
+            </div>
+        );
+    }
+    if (activeTab === 'finance') {
+        return (
+            <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-3xl font-black text-white uppercase italic">Portefeuille & Revenus</h2>
+                        <p className="text-slate-400 font-bold">Suivi de vos ventes et commissions</p>
+                    </div>
+                    <div className="px-4 py-2 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/20 text-xs font-black uppercase tracking-widest animate-pulse">
+                        Live Transactions
+                    </div>
+                </div>
+
+                {loadingFinance ? (
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="h-40 bg-white/5 rounded-3xl animate-pulse"></div>
+                        <div className="h-40 bg-white/5 rounded-3xl animate-pulse"></div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <StatCard
+                                label="Revenu Total Généré"
+                                value={`${financeData?.totalRevenue || 0} €`}
+                                color="indigo"
+                                icon="Dollar"
+                            />
+                            <StatCard
+                                label="Solde Disponible"
+                                value={`${financeData?.balance || 0} €`}
+                                color="emerald"
+                                icon="Check"
+                            />
+                        </div>
+
+                        <div className="bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-8">
+                            <h3 className="text-xl font-black text-white uppercase italic mb-6">Historique des Transactions</h3>
+
+                            {financeData?.transactions && financeData.transactions.length > 0 ? (
+                                <div className="space-y-4">
+                                    {financeData.transactions.map((tx: any) => (
+                                        <div key={tx._id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/5 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${tx.type === 'LICENSE_SALE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                                                    {tx.type === 'LICENSE_SALE' ? '+' : 'R'}
+                                                </div>
+                                                <div>
+                                                    <div className="text-white font-bold">{tx.type === 'LICENSE_SALE' ? 'Vente Licence' : tx.type}</div>
+                                                    <div className="text-slate-500 text-xs">{new Date(tx.createdAt).toLocaleDateString()}</div>
+                                                </div>
+                                            </div>
+                                            <div className="text-emerald-400 font-black text-lg">+{tx.amount} €</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 opacity-50">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg className="w-8 h-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    </div>
+                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Aucune transaction enregistrée</p>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
         );

@@ -83,52 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (email: string, password: string) => {
         try {
             // Check local users first (created from Admin Panel)
-            const localUsersStr = localStorage.getItem('paymendt_users_list');
-            console.log('--- LOGIN DEBUG START ---');
-            console.log('Login attempt for:', email);
-            console.log('Local users storage found:', !!localUsersStr);
+            // Force API login to ensure MongoDB connection
+            // Local mock logic removed to prevent disconnected state
 
-            if (localUsersStr) {
-                const localUsers = JSON.parse(localUsersStr);
-                console.log('Total local users:', localUsers.length);
-                console.log('Available emails:', localUsers.map((u: any) => u.email));
-                console.log('Password length provided:', password.length);
-
-                const matchedUser = localUsers.find((u: any) => {
-                    const emailMatch = u.email.toLowerCase().trim() === email.toLowerCase().trim();
-                    const passMatch = u.password === password;
-
-                    if (emailMatch) {
-                        console.log('Email match found for:', u.email);
-                        console.log('Password match:', passMatch);
-                        if (!passMatch) console.log(' stored len:', u.password.length, ' provided len:', password.length);
-                    }
-                    return emailMatch && passMatch;
-                });
-
-                if (matchedUser) {
-                    const mappedUser: User = {
-                        id: matchedUser.id,
-                        name: matchedUser.name,
-                        email: matchedUser.email,
-                        role: matchedUser.role.toUpperCase().replace('MASTER', 'RESELLER_T1').replace('PARTNER', 'RESELLER_T2').replace('LEARNER', 'STUDENT') as UserRole,
-                        // Defaults for new users
-                        walletBalance: 0,
-                        enrolledLearners: 0,
-                        plusPoints: 0
-                    };
-
-                    const fakeToken = 'local-mock-token-' + Date.now();
-
-                    localStorage.setItem('matc_token', fakeToken);
-                    localStorage.setItem('matc_user', JSON.stringify(mappedUser));
-
-                    setToken(fakeToken);
-                    setUser(mappedUser);
-                    router.push('/dashboard');
-                    return;
-                }
-            }
+            /* 
+            * Previous local mock logic removed.
+            * This ensures that all logins go through /api/auth/login
+            * verifying the user against the MongoDB database.
+            */
 
             // Quick bypass for hardcoded demo account if needed
             if (email === 'demo@matcvault.com' && password === 'demo2026') {

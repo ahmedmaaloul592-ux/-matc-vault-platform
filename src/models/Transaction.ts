@@ -1,55 +1,34 @@
+import mongoose from 'mongoose';
 
-import mongoose, { Schema, Document, Model } from 'mongoose';
-
-export interface ITransaction extends Document {
-    userId: mongoose.Types.ObjectId;
-    type: 'CREDIT' | 'DEBIT';
-    amount: number;
-    description: string;
-    status: 'COMPLETED' | 'PENDING' | 'FAILED';
-    relatedLicense?: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-const TransactionSchema = new Schema<ITransaction>(
-    {
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
-        },
-        type: {
-            type: String,
-            enum: ['CREDIT', 'DEBIT'],
-            required: true
-        },
-        amount: {
-            type: Number,
-            required: true
-        },
-        description: {
-            type: String,
-            required: true,
-            trim: true
-        },
-        status: {
-            type: String,
-            enum: ['COMPLETED', 'PENDING', 'FAILED'],
-            default: 'COMPLETED'
-        },
-        relatedLicense: {
-            type: String
-        }
+const TransactionSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    {
-        timestamps: true
+    buyerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    type: {
+        type: String,
+        enum: ['LICENSE_SALE', 'ROYALTY_PAYOUT', 'COMMISSION'],
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['PENDING', 'COMPLETED', 'FAILED'],
+        default: 'COMPLETED'
+    },
+    description: String,
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-);
+});
 
-TransactionSchema.index({ userId: 1, createdAt: -1 });
-
-const Transaction: Model<ITransaction> =
-    mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);
-
-export default Transaction;
+export default mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);

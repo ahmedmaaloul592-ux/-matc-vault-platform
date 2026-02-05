@@ -9,6 +9,7 @@ import PartnerView from '@/components/dashboard/PartnerView';
 import ProviderView from '@/components/dashboard/ProviderView';
 import AdminView from '@/components/dashboard/AdminView';
 import SettingsView from '@/components/dashboard/SettingsView';
+import ChatView from '@/components/dashboard/ChatView';
 
 export default function DashboardPage() {
     const { user, loading, logout } = useAuth();
@@ -47,6 +48,9 @@ export default function DashboardPage() {
     const renderContent = () => {
         if (activeTab === 'settings') {
             return <SettingsView />;
+        }
+        if (activeTab === 'chat') {
+            return <ChatView />;
         }
 
         switch (user.role) {

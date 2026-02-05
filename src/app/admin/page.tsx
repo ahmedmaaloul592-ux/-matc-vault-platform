@@ -6,6 +6,7 @@ interface AdminUser {
     id: string;
     name: string;
     email: string;
+    role: string;
 }
 
 interface User {
@@ -90,6 +91,8 @@ export default function AdminPage() {
 
     const [bundles, setBundles] = useState<any[]>([]);
     const [isFetchingBundles, setIsFetchingBundles] = useState(false);
+    const [editingBundle, setEditingBundle] = useState<any | null>(null);
+    const [isUpdatingBundle, setIsUpdatingBundle] = useState(false);
 
     const fetchBundles = async () => {
         setIsFetchingBundles(true);
@@ -137,6 +140,70 @@ export default function AdminPage() {
             if (res.ok) fetchBundles();
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const handleDeleteBundle = async (id: string) => {
+        if (!token) {
+            alert("Erreur d'authentification: Token manquant. Veuillez vous reconnecter.");
+            return;
+        }
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce contenu ? Cette action est irréversible.')) return;
+        try {
+            const res = await fetch(`/api/bundles/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                alert('Contenu supprimé');
+                fetchBundles();
+            } else {
+                const data = await res.json();
+                alert('Erreur: ' + (data.message || 'Suppression échouée'));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleUpdateBundle = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingBundle) return;
+        setIsUpdatingBundle(true);
+        try {
+            // Only send editable fields
+            const updateData = {
+                title: editingBundle.title,
+                description: editingBundle.description,
+                category: editingBundle.category,
+                thumbnail: editingBundle.thumbnail,
+                externalLink: editingBundle.externalLink,
+                isActive: editingBundle.isActive,
+                isDemo: editingBundle.isDemo,
+                sessions: editingBundle.sessions || []
+            };
+
+            const res = await fetch(`/api/bundles/${editingBundle._id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateData)
+            });
+            if (res.ok) {
+                alert('Contenu mis à jour');
+                setEditingBundle(null);
+                fetchBundles();
+            } else {
+                const data = await res.json();
+                alert('Erreur: ' + (data.message || 'Mise à jour échouée'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Erreur réseau');
+        } finally {
+            setIsUpdatingBundle(false);
         }
     };
 
@@ -405,6 +472,7 @@ export default function AdminPage() {
         localStorage.removeItem('matc_user');
         localStorage.removeItem('matc_token');
         setUser(null);
+        setToken(null);
         setEmail('');
         setPassword('');
         setStats(null);
@@ -516,7 +584,7 @@ export default function AdminPage() {
                     <div className="flex items-center gap-6">
                         <div className="text-right hidden md:block">
                             <div className="text-white font-bold text-sm">{user.name}</div>
-                            <div className="text-indigo-400 text-xs font-bold uppercase tracking-wider">Administrator</div>
+                            <div className="text-indigo-400 text-xs font-bold uppercase tracking-wider">{user.role}</div>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 flex items-center justify-center text-white font-black shadow-lg shadow-rose-500/20">
                             {user.name.charAt(0)}
@@ -1026,187 +1094,216 @@ export default function AdminPage() {
                             </div>
 
                             {showAddBundle && (
-                                <div className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-10 animate-in slide-in-from-top duration-500">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <h3 className="text-2xl font-black text-white uppercase italic">Nouveau Contenu Scientifique</h3>
-                                        <button onClick={() => setShowAddBundle(false)} className="text-slate-500 hover:text-white font-black text-xs uppercase tracking-widest">Annuler ×</button>
-                                    </div>
-                                    <form onSubmit={handleAddBundleFromAdmin} className="grid grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Titre de l'archive</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={newBundleData.title}
-                                                onChange={e => setNewBundleData({ ...newBundleData, title: e.target.value })}
-                                                placeholder="ex: ISO 9001:2015 Expert..."
-                                                className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Catégorie</label>
-                                            <select
-                                                value={newBundleData.category}
-                                                onChange={e => setNewBundleData({ ...newBundleData, category: e.target.value as any })}
-                                                className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
-                                            >
-                                                <option value="Archive" className="bg-[#020617]">Archive</option>
-                                                <option value="QHSE" className="bg-[#020617]">QHSE</option>
-                                                <option value="ISO" className="bg-[#020617]">ISO</option>
-                                                <option value="Safety" className="bg-[#020617]">Safety</option>
-                                            </select>
-                                        </div>
-                                        <div className="col-span-2 space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Description Courte</label>
-                                            <textarea
-                                                required
-                                                value={newBundleData.description}
-                                                onChange={e => setNewBundleData({ ...newBundleData, description: e.target.value })}
-                                                placeholder="Décrivez brièvement le contenu technique..."
-                                                className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all h-24"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Type de Ressource</label>
-                                            <select
-                                                value={newBundleData.resourceType}
-                                                onChange={e => setNewBundleData({ ...newBundleData, resourceType: e.target.value as any })}
-                                                className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
-                                            >
-                                                <option value="COURSE_SERIES" className="bg-[#020617]">Formations (Series)</option>
-                                                <option value="VIDEO" className="bg-[#020617]">Vidéos</option>
-                                                <option value="DOCUMENT" className="bg-[#020617]">Documents</option>
-                                                <option value="TOOL" className="bg-[#020617]">Outils Technologiques</option>
-                                                <option value="EDUCATIONAL_PLATFORM" className="bg-[#020617]">Plateformes Externes</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-4 italic">Rendu Démo (Visibilité)</label>
-                                            <select
-                                                value={newBundleData.isDemo ? 'true' : 'false'}
-                                                onChange={e => setNewBundleData({ ...newBundleData, isDemo: e.target.value === 'true' })}
-                                                className="w-full bg-white/[0.03] border border-indigo-500/30 p-4 rounded-2xl outline-none focus:border-indigo-500 font-black text-indigo-400 transition-all appearance-none"
-                                            >
-                                                <option value="false" className="bg-[#020617]">Catalogue Officiel</option>
-                                                <option value="true" className="bg-[#020617]">⭐ Espace Démo Uniquement</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Thumbnail URL</label>
-                                            <input
-                                                type="text"
-                                                value={newBundleData.thumbnail}
-                                                onChange={e => setNewBundleData({ ...newBundleData, thumbnail: e.target.value })}
-                                                placeholder="https://..."
-                                                className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-4 italic">Lien Externe (Drive / URL)</label>
-                                            <input
-                                                type="text"
-                                                value={newBundleData.externalLink}
-                                                onChange={e => setNewBundleData({ ...newBundleData, externalLink: e.target.value })}
-                                                placeholder="https://drive.google.com/..."
-                                                className="w-full bg-white/[0.03] border border-indigo-500/20 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
-                                            />
-                                        </div>
+                                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                                    <div className="bg-[#0f172a] border border-white/10 rounded-[2rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 animate-in slide-in-from-bottom-10 duration-500 custom-scrollbar relative">
 
-                                        {newBundleData.resourceType === 'COURSE_SERIES' && (
-                                            <div className="col-span-2 space-y-6">
-                                                <div className="flex items-center justify-between border-t border-white/5 pt-6">
-                                                    <h4 className="text-sm font-black text-indigo-400 uppercase italic">Structure des Sessions (Vidéos & Supports)</h4>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setNewBundleData({
-                                                            ...newBundleData,
-                                                            sessions: [...newBundleData.sessions, { title: '', videoUrl: '', supportUrl: '' }]
-                                                        })}
-                                                        className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-[10px] font-black uppercase transition-all"
-                                                    >
-                                                        + Ajouter une séance
-                                                    </button>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    {newBundleData.sessions.map((session, index) => (
-                                                        <div key={index} className="bg-white/5 border border-white/5 p-6 rounded-2xl relative group">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const newSessions = [...newBundleData.sessions];
-                                                                    newSessions.splice(index, 1);
-                                                                    setNewBundleData({ ...newBundleData, sessions: newSessions });
-                                                                }}
-                                                                className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                            >
-                                                                ×
-                                                            </button>
-                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                                <div className="space-y-1">
-                                                                    <label className="text-[9px] font-black text-slate-500 uppercase ml-2">Titre de la séance {index + 1}</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={session.title}
-                                                                        onChange={e => {
-                                                                            const newSessions = [...newBundleData.sessions];
-                                                                            newSessions[index].title = e.target.value;
-                                                                            setNewBundleData({ ...newBundleData, sessions: newSessions });
-                                                                        }}
-                                                                        placeholder="ex: Séance 1: Introduction..."
-                                                                        className="w-full bg-black/20 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 font-bold text-white text-xs transition-all"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1">
-                                                                    <label className="text-[9px] font-black text-slate-500 uppercase ml-2">Lien Vidéo (Drive/URL)</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={session.videoUrl}
-                                                                        onChange={e => {
-                                                                            const newSessions = [...newBundleData.sessions];
-                                                                            newSessions[index].videoUrl = e.target.value;
-                                                                            setNewBundleData({ ...newBundleData, sessions: newSessions });
-                                                                        }}
-                                                                        placeholder="https://..."
-                                                                        className="w-full bg-black/20 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 font-bold text-white text-xs transition-all"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1">
-                                                                    <label className="text-[9px] font-black text-slate-500 uppercase ml-2">Support PDF/Ressource</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={session.supportUrl}
-                                                                        onChange={e => {
-                                                                            const newSessions = [...newBundleData.sessions];
-                                                                            newSessions[index].supportUrl = e.target.value;
-                                                                            setNewBundleData({ ...newBundleData, sessions: newSessions });
-                                                                        }}
-                                                                        placeholder="https://..."
-                                                                        className="w-full bg-black/20 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 font-bold text-white text-xs transition-all"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    {newBundleData.sessions.length === 0 && (
-                                                        <div className="text-center py-10 border-2 border-dashed border-white/5 rounded-3xl text-slate-600 italic text-xs">
-                                                            Aucune séance n'est définie pour cette formation série.
-                                                        </div>
-                                                    )}
-                                                </div>
+                                        <div className="flex items-center justify-between mb-8 sticky top-0 bg-[#0f172a] z-10 py-2 border-b border-white/5">
+                                            <div>
+                                                <h3 className="text-2xl font-black text-white uppercase italic tracking-wide">
+                                                    <span className="text-indigo-500">Nouveau</span> Contenu Scientifique
+                                                </h3>
+                                                <p className="text-slate-400 text-xs font-medium mt-1">Ajouter une formation, une archive ou un outil.</p>
                                             </div>
-                                        )}
-
-                                        <div className="col-span-2 pt-4">
                                             <button
-                                                type="submit"
-                                                disabled={isCreatingBundle}
-                                                className="w-full py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-black uppercase tracking-widest hover:from-indigo-500 hover:to-purple-500 transition-all shadow-xl shadow-indigo-500/20 disabled:opacity-50"
+                                                type="button"
+                                                onClick={() => setShowAddBundle(false)}
+                                                className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-500 rounded-full transition-all"
                                             >
-                                                {isCreatingBundle ? 'Création en cours...' : 'Enregistrer dans la bibliothèque'}
+                                                ✕
                                             </button>
                                         </div>
-                                    </form>
+
+                                        <form onSubmit={handleAddBundleFromAdmin} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Titre de l'archive</label>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={newBundleData.title}
+                                                    onChange={e => setNewBundleData({ ...newBundleData, title: e.target.value })}
+                                                    placeholder="ex: ISO 9001:2015 Expert..."
+                                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Catégorie</label>
+                                                <select
+                                                    value={newBundleData.category}
+                                                    onChange={e => setNewBundleData({ ...newBundleData, category: e.target.value as any })}
+                                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
+                                                >
+                                                    <option value="Archive" className="bg-[#020617]">Archive</option>
+                                                    <option value="QHSE" className="bg-[#020617]">QHSE</option>
+                                                    <option value="ISO" className="bg-[#020617]">ISO</option>
+                                                    <option value="Safety" className="bg-[#020617]">Safety</option>
+                                                </select>
+                                            </div>
+                                            <div className="col-span-2 space-y-2">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Description Courte</label>
+                                                <textarea
+                                                    required
+                                                    value={newBundleData.description}
+                                                    onChange={e => setNewBundleData({ ...newBundleData, description: e.target.value })}
+                                                    placeholder="Décrivez brièvement le contenu technique..."
+                                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all h-24"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Type de Ressource</label>
+                                                <select
+                                                    value={newBundleData.resourceType}
+                                                    onChange={e => setNewBundleData({ ...newBundleData, resourceType: e.target.value as any })}
+                                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
+                                                >
+                                                    <option value="COURSE_SERIES" className="bg-[#020617]">Formations (Series)</option>
+                                                    <option value="VIDEO" className="bg-[#020617]">Vidéos</option>
+                                                    <option value="DOCUMENT" className="bg-[#020617]">Documents</option>
+                                                    <option value="TOOL" className="bg-[#020617]">Outils Technologiques</option>
+                                                    <option value="EDUCATIONAL_PLATFORM" className="bg-[#020617]">Plateformes Externes</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-4 italic">Rendu Démo (Visibilité)</label>
+                                                <select
+                                                    value={newBundleData.isDemo ? 'true' : 'false'}
+                                                    onChange={e => setNewBundleData({ ...newBundleData, isDemo: e.target.value === 'true' })}
+                                                    className="w-full bg-white/[0.03] border border-indigo-500/30 p-4 rounded-2xl outline-none focus:border-indigo-500 font-black text-indigo-400 transition-all appearance-none"
+                                                >
+                                                    <option value="false" className="bg-[#020617]">Catalogue Officiel</option>
+                                                    <option value="true" className="bg-[#020617]">⭐ Espace Démo Uniquement</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Thumbnail URL</label>
+                                                <input
+                                                    type="text"
+                                                    value={newBundleData.thumbnail}
+                                                    onChange={e => setNewBundleData({ ...newBundleData, thumbnail: e.target.value })}
+                                                    placeholder="https://..."
+                                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-4 italic">Lien Externe (Drive / URL)</label>
+                                                <input
+                                                    type="text"
+                                                    value={newBundleData.externalLink}
+                                                    onChange={e => setNewBundleData({ ...newBundleData, externalLink: e.target.value })}
+                                                    placeholder="https://drive.google.com/..."
+                                                    className="w-full bg-white/[0.03] border border-indigo-500/20 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
+                                                />
+                                            </div>
+
+                                            {newBundleData.resourceType === 'COURSE_SERIES' && (
+                                                <div className="col-span-2 space-y-6">
+                                                    <div className="flex items-center justify-between border-t border-white/5 pt-6">
+                                                        <h4 className="text-sm font-black text-indigo-400 uppercase italic">Structure des Sessions (Vidéos & Supports)</h4>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setNewBundleData({
+                                                                ...newBundleData,
+                                                                sessions: [...newBundleData.sessions, { title: '', videoUrl: '', supportUrl: '' }]
+                                                            })}
+                                                            className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-[10px] font-black uppercase transition-all"
+                                                        >
+                                                            + Ajouter une séance
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        {newBundleData.sessions.map((session, index) => (
+                                                            <div key={index} className="bg-white/5 border border-white/5 p-6 rounded-2xl relative group">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newSessions = [...newBundleData.sessions];
+                                                                        newSessions.splice(index, 1);
+                                                                        setNewBundleData({ ...newBundleData, sessions: newSessions });
+                                                                    }}
+                                                                    className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                                >
+                                                                    ×
+                                                                </button>
+                                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-[9px] font-black text-slate-500 uppercase ml-2">Titre de la séance {index + 1}</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={session.title}
+                                                                            onChange={e => {
+                                                                                const newSessions = [...newBundleData.sessions];
+                                                                                newSessions[index].title = e.target.value;
+                                                                                setNewBundleData({ ...newBundleData, sessions: newSessions });
+                                                                            }}
+                                                                            placeholder="ex: Séance 1: Introduction..."
+                                                                            className="w-full bg-black/20 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 font-bold text-white text-xs transition-all"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-[9px] font-black text-slate-500 uppercase ml-2">Lien Vidéo (Drive/URL)</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={session.videoUrl}
+                                                                            onChange={e => {
+                                                                                const newSessions = [...newBundleData.sessions];
+                                                                                newSessions[index].videoUrl = e.target.value;
+                                                                                setNewBundleData({ ...newBundleData, sessions: newSessions });
+                                                                            }}
+                                                                            placeholder="https://..."
+                                                                            className="w-full bg-black/20 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 font-bold text-white text-xs transition-all"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-[9px] font-black text-slate-500 uppercase ml-2">Support PDF/Ressource</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={session.supportUrl}
+                                                                            onChange={e => {
+                                                                                const newSessions = [...newBundleData.sessions];
+                                                                                newSessions[index].supportUrl = e.target.value;
+                                                                                setNewBundleData({ ...newBundleData, sessions: newSessions });
+                                                                            }}
+                                                                            placeholder="https://..."
+                                                                            className="w-full bg-black/20 border border-white/10 p-3 rounded-xl outline-none focus:border-indigo-500 font-bold text-white text-xs transition-all"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                        {newBundleData.sessions.length === 0 && (
+                                                            <div className="text-center py-10 border-2 border-dashed border-white/5 rounded-3xl text-slate-600 italic text-xs">
+                                                                Aucune séance n'est définie pour cette formation série.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="col-span-1 md:col-span-2 pt-6 flex items-center gap-4 border-t border-white/5 mt-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowAddBundle(false)}
+                                                    className="flex-1 py-4 bg-white/5 text-slate-300 rounded-2xl font-bold uppercase tracking-wider hover:bg-white/10 hover:text-white transition-all"
+                                                >
+                                                    Annuler
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    disabled={isCreatingBundle}
+                                                    className="flex-[2] py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-black uppercase tracking-widest hover:from-indigo-500 hover:to-purple-500 transition-all shadow-xl shadow-indigo-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                                >
+                                                    {isCreatingBundle ? (
+                                                        <>
+                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                            <span>Création...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Enregistrer</span>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             )}
 
@@ -1217,7 +1314,8 @@ export default function AdminPage() {
                                             <th className="p-6 text-xs font-black text-slate-400 uppercase tracking-wider">Archive / Ressource</th>
                                             <th className="p-6 text-xs font-black text-slate-400 uppercase tracking-wider text-center">Type</th>
                                             <th className="p-6 text-xs font-black text-slate-400 uppercase tracking-wider text-center">Accès</th>
-                                            <th className="p-6 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Statut</th>
+                                            <th className="p-6 text-xs font-black text-slate-400 uppercase tracking-wider text-center">Statut</th>
+                                            <th className="p-6 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
@@ -1247,23 +1345,43 @@ export default function AdminPage() {
                                                             {bundle.isDemo ? '⭐ Démo' : '📘 Officiel'}
                                                         </span>
                                                     </td>
-                                                    <td className="p-6 text-right">
-                                                        <div className="flex items-center justify-end gap-3">
-                                                            <div className="flex flex-col items-end gap-1">
-                                                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${bundle.approvalStatus === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : bundle.approvalStatus === 'rejected' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                                                                    {bundle.approvalStatus || 'approved'}
-                                                                </span>
-                                                                {bundle.approvalStatus === 'pending' && (
-                                                                    <div className="flex gap-1">
-                                                                        <button onClick={() => handleApproveBundle(bundle._id)} className="text-[8px] font-black text-emerald-500 hover:underline">Approuver</button>
-                                                                        <span className="text-[8px] text-slate-700">|</span>
-                                                                        <button onClick={() => handleRejectBundle(bundle._id)} className="text-[8px] font-black text-rose-500 hover:underline">Rejeter</button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                                    <td className="p-6 text-center">
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${bundle.approvalStatus === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : bundle.approvalStatus === 'rejected' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                                                {bundle.approvalStatus || 'approved'}
+                                                            </span>
+                                                            {bundle.approvalStatus === 'pending' && (
+                                                                <div className="flex gap-1">
+                                                                    <button onClick={() => handleApproveBundle(bundle._id)} className="text-[8px] font-black text-emerald-500 hover:underline">Approuver</button>
+                                                                    <span className="text-[8px] text-slate-700">|</span>
+                                                                    <button onClick={() => handleRejectBundle(bundle._id)} className="text-[8px] font-black text-rose-500 hover:underline">Rejeter</button>
+                                                                </div>
+                                                            )}
                                                             <span className="text-[10px] font-black italic text-slate-600 uppercase">
                                                                 {bundle.isActive ? 'En ligne' : 'Hors-ligne'}
                                                             </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-6 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button
+                                                                onClick={() => setEditingBundle(bundle)}
+                                                                className="p-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white rounded-lg transition-all"
+                                                                title="Modifier"
+                                                            >
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteBundle(bundle._id)}
+                                                                className="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white rounded-lg transition-all"
+                                                                title="Supprimer"
+                                                            >
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -1318,6 +1436,182 @@ export default function AdminPage() {
                     )}
                 </main>
             </div>
+
+            {/* Edit Bundle Modal */}
+            {editingBundle && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+                    <div className="bg-[#020617] border border-white/10 rounded-[2.5rem] w-full max-w-4xl p-10 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center mb-8">
+                            <h3 className="text-2xl font-black text-white uppercase italic">Modifier le Contenu</h3>
+                            <button onClick={() => setEditingBundle(null)} className="p-2 hover:bg-white/5 rounded-full text-slate-400 transition-colors">
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateBundle} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Titre</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={editingBundle.title}
+                                    onChange={e => setEditingBundle({ ...editingBundle, title: e.target.value })}
+                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Catégorie</label>
+                                <select
+                                    value={editingBundle.category}
+                                    onChange={e => setEditingBundle({ ...editingBundle, category: e.target.value })}
+                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
+                                >
+                                    <option value="Archive" className="bg-[#020617]">Archive</option>
+                                    <option value="QHSE" className="bg-[#020617]">QHSE</option>
+                                    <option value="ISO" className="bg-[#020617]">ISO</option>
+                                    <option value="Safety" className="bg-[#020617]">Safety</option>
+                                </select>
+                            </div>
+                            <div className="col-span-2 space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Description</label>
+                                <textarea
+                                    required
+                                    value={editingBundle.description}
+                                    onChange={e => setEditingBundle({ ...editingBundle, description: e.target.value })}
+                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all h-24"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Thumbnail</label>
+                                <input
+                                    type="text"
+                                    value={editingBundle.thumbnail}
+                                    onChange={e => setEditingBundle({ ...editingBundle, thumbnail: e.target.value })}
+                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Lien Externe</label>
+                                <input
+                                    type="text"
+                                    value={editingBundle.externalLink}
+                                    onChange={e => setEditingBundle({ ...editingBundle, externalLink: e.target.value })}
+                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all shadow-inner"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Visibilité</label>
+                                <select
+                                    value={editingBundle.isActive ? 'true' : 'false'}
+                                    onChange={e => setEditingBundle({ ...editingBundle, isActive: e.target.value === 'true' })}
+                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
+                                >
+                                    <option value="true" className="bg-[#020617]">En Ligne</option>
+                                    <option value="false" className="bg-[#020617]">Hors Ligne</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4 italic">Accès Démo</label>
+                                <select
+                                    value={editingBundle.isDemo ? 'true' : 'false'}
+                                    onChange={e => setEditingBundle({ ...editingBundle, isDemo: e.target.value === 'true' })}
+                                    className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-2xl outline-none focus:border-indigo-500 font-bold text-white transition-all appearance-none"
+                                >
+                                    <option value="false" className="bg-[#020617]">Officiel</option>
+                                    <option value="true" className="bg-[#020617]">Démo</option>
+                                </select>
+                            </div>
+
+                            {/* Sessions Management */}
+                            {editingBundle.resourceType === 'COURSE_SERIES' && (
+                                <div className="col-span-2 space-y-6 mt-4 border-t border-white/10 pt-6">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-sm font-black text-indigo-400 uppercase italic">Sessions</h4>
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingBundle({
+                                                ...editingBundle,
+                                                sessions: [...(editingBundle.sessions || []), { title: '', videoUrl: '', supportUrl: '' }]
+                                            })}
+                                            className="px-4 py-2 bg-indigo-500/10 text-indigo-400 rounded-xl text-[10px] font-black uppercase"
+                                        >
+                                            + Ajouter
+                                        </button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {(editingBundle.sessions || []).map((session: any, index: number) => (
+                                            <div key={index} className="bg-white/5 border border-white/5 p-4 rounded-2xl relative group">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newSessions = [...editingBundle.sessions];
+                                                        newSessions.splice(index, 1);
+                                                        setEditingBundle({ ...editingBundle, sessions: newSessions });
+                                                    }}
+                                                    className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                >
+                                                    ×
+                                                </button>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    <input
+                                                        type="text"
+                                                        value={session.title}
+                                                        onChange={e => {
+                                                            const newSessions = [...editingBundle.sessions];
+                                                            newSessions[index].title = e.target.value;
+                                                            setEditingBundle({ ...editingBundle, sessions: newSessions });
+                                                        }}
+                                                        placeholder="Titre"
+                                                        className="bg-black/20 border border-white/10 p-3 rounded-xl outline-none text-white text-xs font-bold"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={session.videoUrl}
+                                                        onChange={e => {
+                                                            const newSessions = [...editingBundle.sessions];
+                                                            newSessions[index].videoUrl = e.target.value;
+                                                            setEditingBundle({ ...editingBundle, sessions: newSessions });
+                                                        }}
+                                                        placeholder="Vidéo URL"
+                                                        className="bg-black/20 border border-white/10 p-3 rounded-xl outline-none text-white text-xs font-bold"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={session.supportUrl}
+                                                        onChange={e => {
+                                                            const newSessions = [...editingBundle.sessions];
+                                                            newSessions[index].supportUrl = e.target.value;
+                                                            setEditingBundle({ ...editingBundle, sessions: newSessions });
+                                                        }}
+                                                        placeholder="Support URL"
+                                                        className="bg-black/20 border border-white/10 p-3 rounded-xl outline-none text-white text-xs font-bold"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="col-span-2 pt-4 flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingBundle(null)}
+                                    className="flex-1 py-4 bg-white/5 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isUpdatingBundle}
+                                    className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+                                >
+                                    {isUpdatingBundle ? 'Enregistrement...' : 'Enregistrer'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Edit User Modal */}
             {editingUser && (
